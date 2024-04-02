@@ -3,14 +3,21 @@ const path = require("path");
 const { v4: uuidv4 } = require("uuid");
 
 const storage = multer.diskStorage({
-  destination: "audio",
+  destination: "uploads",
   filename: function (req, file, cb) {
-    cb(null, uuidv4() + "-" + file.originalname);
+    if (file.fieldname === "file") {
+      cb(null, "audio" + uuidv4() + "-" + file.originalname);
+    }
+    if (file.fieldname === "image") {
+      cb(null, "image_" + uuidv4() + "-" + file.originalname);
+    }
   },
 });
 
 function checkFileType(file, cb) {
-  const filetypes = /wav|mp3|mpeg|ogg|aac|flac|alac|wma|aiff/;
+  const filetypes =
+    /wav|mp3|mpeg|ogg|aac|flac|alac|wma|aiff|mp4|ogg|webm|x-msvideo|x-ms-wmv|x-flv|quicktime|png|jpeg|jpg/;
+  // const filetypes = //;
 
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
 
@@ -19,15 +26,14 @@ function checkFileType(file, cb) {
   if (mimetype && extname) {
     return cb(null, true);
   } else {
-    cb("Error: Audio Files Only!");
-    return;
+    return cb("Error: Audio or Video Files Only!");
   }
 }
 
-const audioUpload = multer({
+const fileUpload = multer({
   storage: storage,
   fileFilter: function (req, file, cb) {
     checkFileType(file, cb);
   },
 });
-module.exports = audioUpload;
+module.exports = fileUpload;

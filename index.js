@@ -1,4 +1,5 @@
 // modules
+const session = require("express-session");
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
@@ -8,24 +9,49 @@ const PORT = process.env.PORT || 5000;
 
 // imports
 const corsPolicy = require("./middleware/CORS");
-
-const imageUpload = require("./middleware/imageUpload");
-const audioUpload = require("./middleware/audioUpload");
+const authenticationRoute = require("./routes/authentication");
+const fileRoute = require("./routes/file");
+const fileUpload = require("./middleware/fileUpload");
 
 //  CORS
 app.use(corsPolicy);
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 // file serving
 app.use("/images", express.static("images"));
 
 // Routes
+app.use(
+  session({
+    secret: "secret-key",
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 60000 * 30 }, // session timeout of 60 seconds
+  })
+);
+app.use("/user", authenticationRoute);
+app.use("/file", fileRoute);
+// app.use("/", (req, res) => {
+//   res.send(
+//     "<a target='_blank' href='http://localhost:5000/file/download/?filePath=uploads\\audiof09f558d-814e-47ec-a3ff-e379f858dc98-sample.mp3'>Click</a>"
+//   );
+// });
+app.use(
+  "/upload",
+  fileUpload.fields([
+    {
+      name: "file",
+    },
+    {
+      name: "image",
+    },
+  ]),
 
-app.post("/upload", audioUpload.single("audio"), (req, res) => {
-  // req.file contains the uploaded audio file
-  // Do something with the audio file, such as save it to a database or storage service
-  res.send(req.file.path);
-});
-// Routes Middleware
+  (req, res) => {
+    return res.status(200).json({ message: "done" });
+  }
+);
 
 // Database
 mongoose
