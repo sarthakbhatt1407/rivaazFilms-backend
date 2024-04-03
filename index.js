@@ -10,8 +10,8 @@ const PORT = process.env.PORT || 5000;
 // imports
 const corsPolicy = require("./middleware/CORS");
 const authenticationRoute = require("./routes/authentication");
+const orders = require("./routes/orders");
 const fileRoute = require("./routes/file");
-const fileUpload = require("./middleware/fileUpload");
 
 //  CORS
 app.use(corsPolicy);
@@ -31,6 +31,7 @@ app.use(
   })
 );
 app.use("/user", authenticationRoute);
+app.use("/order", orders);
 app.use("/file", fileRoute);
 // app.use("/", (req, res) => {
 //   res.send(
@@ -39,14 +40,6 @@ app.use("/file", fileRoute);
 // });
 app.use(
   "/upload",
-  fileUpload.fields([
-    {
-      name: "file",
-    },
-    {
-      name: "image",
-    },
-  ]),
 
   (req, res) => {
     return res.status(200).json({ message: "done" });
