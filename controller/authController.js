@@ -120,6 +120,16 @@ const userIsLoggedIn = async (req, res) => {
   }
 };
 
+const destroySession = async (req, res) => {
+  req.session.destroy(function (err) {
+    console.log("Destroyed session");
+  });
+  return res
+    .status(200)
+    .json({ message: "logout successfully", isLoggedIn: false });
+};
+
 exports.userRegistration = userRegistration;
 exports.userLogin = userLogin;
 exports.userIsLoggedIn = userIsLoggedIn;
+exports.destroySession = destroySession;

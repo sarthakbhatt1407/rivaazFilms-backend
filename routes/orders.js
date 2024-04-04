@@ -10,7 +10,7 @@ router.post(
       name: "file",
     },
     {
-      name: "image",
+      name: "thumbnail",
     },
   ]),
   orderController.orderCreator
@@ -27,7 +27,7 @@ router.patch(
       name: "file",
     },
     {
-      name: "image",
+      name: "thumbnail",
     },
   ]),
   orderController.editOrderById

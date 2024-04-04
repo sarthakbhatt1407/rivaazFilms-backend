@@ -8,7 +8,7 @@ const storage = multer.diskStorage({
     if (file.fieldname === "file") {
       cb(null, "audio" + uuidv4() + "-" + file.originalname);
     }
-    if (file.fieldname === "image") {
+    if (file.fieldname === "thumbnail") {
       cb(null, "image_" + uuidv4() + "-" + file.originalname);
     }
   },
@@ -16,7 +16,7 @@ const storage = multer.diskStorage({
 
 function checkFileType(file, cb) {
   const filetypes =
-    /wav|mp3|mpeg|ogg|aac|flac|alac|wma|aiff|mp4|ogg|webm|x-msvideo|x-ms-wmv|x-flv|quicktime|png|jpeg|jpg/;
+    /wav|mp3|mpeg|ogg|aac|flac|alac|wma|aiff|mp4|webm|x-msvideo|x-ms-wmv|x-flv|quicktime|png|jpeg|jpg/;
   // const filetypes = //;
 
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());

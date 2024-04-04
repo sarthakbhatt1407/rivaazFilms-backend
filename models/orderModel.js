@@ -2,6 +2,9 @@ const mongoose = require("mongoose");
 
 const orderSchema = mongoose.Schema({
   labelName: { type: String, required: true },
+  subLabel1: { type: String },
+  subLabel2: { type: String },
+  subLabel3: { type: String },
   title: { type: String, required: true },
   dateOfRelease: { type: String, required: true },
   albumType: { type: String, required: true },

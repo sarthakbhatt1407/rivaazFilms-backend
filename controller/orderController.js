@@ -80,20 +80,23 @@ const orderCreator = async (req, res) => {
     starCast,
     lyrics,
     userId,
+    subLabel1,
+    subLabel2,
+    subLabel3,
   } = req.body;
   if (!req.files) {
     return res.status(400).json({ message: "please upload files!" });
   }
-  if (!req.files.file || !req.files.image) {
+  if (!req.files.file || !req.files.thumbnail) {
     if (req.files.file) {
       fs.unlink(req.files.file[0].path, (err) => {});
     }
-    if (req.files.image) {
-      fs.unlink(req.files.image[0].path, (err) => {});
+    if (req.files.thumbnail) {
+      fs.unlink(req.files.thumbnail[0].path, (err) => {});
     }
     return res.status(400).json({ message: "please upload files!" });
   }
-  const img = req.files.image[0];
+  const img = req.files.thumbnail[0];
   const file = req.files.file[0];
 
   const dateAndTime = dateFetcher();
@@ -118,6 +121,9 @@ const orderCreator = async (req, res) => {
     orderDateAndTime: dateAndTime,
     deleted: false,
     remark: "",
+    subLabel1,
+    subLabel2,
+    subLabel3,
   });
 
   try {
@@ -184,6 +190,9 @@ const editOrderById = async (req, res) => {
     starCast,
     lyrics,
     remark,
+    subLabel1,
+    subLabel2,
+    subLabel3,
   } = req.body;
 
   let order;
@@ -220,18 +229,17 @@ const editOrderById = async (req, res) => {
     if (!req.files) {
       return res.status(400).json({ message: "please upload files!" });
     }
-
-    if (!req.files.file || !req.files.image) {
+    if (!req.files.file || !req.files.thumbnail) {
       if (req.files.file) {
         fs.unlink(req.files.file[0].path, (err) => {});
       }
-      if (req.files.image) {
-        fs.unlink(req.files.image[0].path, (err) => {});
+      if (req.files.thumbnail) {
+        fs.unlink(req.files.thumbnail[0].path, (err) => {});
       }
       return res.status(400).json({ message: "please upload files!" });
     }
-    img = req.files.image[0];
-    file = req.files.file[0];
+    const img = req.files.thumbnail[0];
+    const file = req.files.file[0];
 
     fs.unlink(order.thumbnail, (err) => {});
     fs.unlink(order.file, (err) => {});
