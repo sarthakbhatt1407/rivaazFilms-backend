@@ -85,7 +85,7 @@ const orderCreator = async (req, res) => {
     subLabel3,
   } = req.body;
   if (!req.files) {
-    return res.status(400).json({ message: "please upload files!" });
+    return res.status(400).json({ message: "Please upload files!" });
   }
   if (!req.files.file || !req.files.thumbnail) {
     if (req.files.file) {
@@ -94,7 +94,7 @@ const orderCreator = async (req, res) => {
     if (req.files.thumbnail) {
       fs.unlink(req.files.thumbnail[0].path, (err) => {});
     }
-    return res.status(400).json({ message: "please upload files!" });
+    return res.status(400).json({ message: "Please upload files!" });
   }
   const img = req.files.thumbnail[0];
   const file = req.files.file[0];
@@ -132,9 +132,9 @@ const orderCreator = async (req, res) => {
     console.log(error);
     fs.unlink(file.path, (err) => {});
     fs.unlink(img.path, (err) => {});
-    return res.status(400).json({ message: "unable to create order" });
+    return res.status(400).json({ message: "Unable to create order" });
   }
-  return res.status(200).json({ message: "order created", createdOrder });
+  return res.status(200).json({ message: "Order created", createdOrder });
 };
 
 const getOrderByOrderId = async (req, res) => {
@@ -150,7 +150,7 @@ const getOrderByOrderId = async (req, res) => {
     console.log(error);
     return res.status(404).json({ message: "No order found" });
   }
-  return res.status(200).json({ order });
+  return res.status(200).json({ order: order.toObject({ getters: true }) });
 };
 const getOrderByUser = async (req, res) => {
   const { user } = req.query;
@@ -227,7 +227,7 @@ const editOrderById = async (req, res) => {
   let img, file;
   if (action === "edit") {
     if (!req.files) {
-      return res.status(400).json({ message: "please upload files!" });
+      return res.status(400).json({ message: "Please upload files!" });
     }
     if (!req.files.file || !req.files.thumbnail) {
       if (req.files.file) {
@@ -236,7 +236,7 @@ const editOrderById = async (req, res) => {
       if (req.files.thumbnail) {
         fs.unlink(req.files.thumbnail[0].path, (err) => {});
       }
-      return res.status(400).json({ message: "please upload files!" });
+      return res.status(400).json({ message: "Please upload files!" });
     }
     const img = req.files.thumbnail[0];
     const file = req.files.file[0];

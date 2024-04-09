@@ -85,19 +85,15 @@ const userLogin = async (req, res, next) => {
   }
 
   //   passIsValid = await bcrypt.compare(password, user.password);
-  if (user && email === user.email) {
+  if (user && email === user.email && password === user.password) {
     token = jwt.sign({ userId: user.id, userEmail: email }, "secret_key");
     req.session.token = token;
     req.session.userId = user.id;
     user.password = "Keep Guessing";
     return res.status(201).json({
       user: {
-        name: user.name,
-        email: user.email,
         id: user.id,
-        contact: user.contactNum,
-        address: user.address,
-        userSince: user.userSince,
+        isAdmin: user.isAdmin,
       },
       message: "Logged In",
       isloggedIn: true,

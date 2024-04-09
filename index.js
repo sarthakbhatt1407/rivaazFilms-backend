@@ -19,7 +19,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // file serving
-app.use("/images", express.static("images"));
+app.use("/uploads", express.static("uploads"));
 
 // Routes
 app.use(
