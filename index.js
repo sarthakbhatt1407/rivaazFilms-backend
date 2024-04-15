@@ -12,6 +12,7 @@ const corsPolicy = require("./middleware/CORS");
 const authenticationRoute = require("./routes/authentication");
 const orders = require("./routes/orders");
 const fileRoute = require("./routes/file");
+const copyrightRoute = require("./routes/copyright");
 
 //  CORS
 app.use(corsPolicy);
@@ -33,6 +34,7 @@ app.use(
 app.use("/user", authenticationRoute);
 app.use("/order", orders);
 app.use("/file", fileRoute);
+app.use("/copyright", copyrightRoute);
 // app.use("/", (req, res) => {
 //   res.send(
 //     "<a target='_blank' href='http://localhost:5000/file/download/?filePath=uploads\\audiof09f558d-814e-47ec-a3ff-e379f858dc98-sample.mp3'>Click</a>"
