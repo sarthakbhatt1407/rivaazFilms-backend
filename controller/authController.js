@@ -51,6 +51,14 @@ const userRegistration = async (req, res, next) => {
       city,
       state,
       country,
+      bankDetails: [
+        {
+          accountNo: "",
+          ifsc: "",
+          bankName: "",
+          upi: "",
+        },
+      ],
     });
     if (!validateEmail(email)) {
       return res.status(404).json({ message: "Invalid Email" });
@@ -226,9 +234,37 @@ const getUserDetailsWithUserId = async (req, res) => {
   return res.status(200).json({ user });
 };
 
+const userBankDetails = async (req, res) => {
+  const { accountNo, ifsc, bankName, upi, userId } = req.body;
+  let user;
+  try {
+    user = await User.findById(userId);
+    if (!user) {
+      throw new Error("No user found!");
+    }
+  } catch (error) {
+    return res.status(404).json({ message: "User not found!" });
+  }
+  let obj = {
+    accountNo,
+    ifsc,
+    bankName,
+    upi,
+  };
+  user.bankDetails = [{ ...obj }];
+
+  try {
+    await user.save();
+  } catch (error) {
+    return res.status(404).json({ message: "Something went wrong!" });
+  }
+  return res.status(200).json({ message: "Bank details added.", user });
+};
+
 exports.userRegistration = userRegistration;
 exports.userLogin = userLogin;
 exports.userIsLoggedIn = userIsLoggedIn;
 exports.userAnalyticsReportAdder = userAnalyticsReportAdder;
 exports.userFinancialReportAdder = userFinancialReportAdder;
 exports.getUserDetailsWithUserId = getUserDetailsWithUserId;
+exports.userBankDetails = userBankDetails;
