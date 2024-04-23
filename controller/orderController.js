@@ -1,5 +1,6 @@
 const Order = require("../models/orderModel");
 const { v4: uuidv4 } = require("uuid");
+const User = require("../models/user");
 
 const fs = require("fs");
 
@@ -173,7 +174,7 @@ const getOrderByUser = async (req, res) => {
 };
 
 const editOrderById = async (req, res) => {
-  const { id, action } = req.query;
+  const { id, action, userId } = req.query;
 
   const {
     labelName,
@@ -195,7 +196,7 @@ const editOrderById = async (req, res) => {
     subLabel3,
   } = req.body;
 
-  let order;
+  let order, user;
 
   try {
     order = await Order.findById(id);
@@ -213,17 +214,41 @@ const editOrderById = async (req, res) => {
   if (action === "restore") {
     order.deleted = false;
   }
-  if (action === "statusAccepted") {
-    order.status = "processing";
+  if (
+    action === "statusAccepted" ||
+    action === "statusRejected" ||
+    action === "completed"
+  ) {
+    try {
+      user = await User.findById(userId);
+      if (!user) {
+        throw new Error("User not found!");
+      }
+    } catch (error) {
+      return res.status(404).json({ message: "User not found!" });
+    }
+    if (!user.isAdmin) {
+      return res
+        .status(400)
+        .json({ message: "You are not allowed to perform this action!" });
+    }
+
+    if (action === "statusAccepted") {
+      order.status = "processing";
+    }
+    if (action === "statusRejected") {
+      if (!remark) {
+        return res.status(400).json({ message: "Please add remark!" });
+      }
+      order.status = "rejected";
+      order.remark = remark;
+    }
+    if (action === "completed") {
+      order.status = "completed";
+      order.remark = "";
+    }
   }
-  if (action === "statusRejected") {
-    order.status = "rejected";
-    order.remark = remark;
-  }
-  if (action === "completed") {
-    order.status = "completed";
-    order.remark = "";
-  }
+
   let img, file;
   if (action === "edit") {
     if (!req.files) {
@@ -259,6 +284,7 @@ const editOrderById = async (req, res) => {
     order.language = language;
     order.thumbnail = img.path;
     order.file = file.path;
+    order.remark = "";
   }
 
   try {
@@ -272,7 +298,41 @@ const editOrderById = async (req, res) => {
   return res.status(200).json({ message: "order updated successfully", order });
 };
 
+const getAllOrders = async (req, res) => {
+  const { userId } = req.query;
+  let user;
+  try {
+    user = await User.findById(userId);
+    if (!user) {
+      throw new Error("User not found!");
+    }
+  } catch (error) {
+    return res.status(404).json({ message: "User not found!" });
+  }
+  if (!user.isAdmin) {
+    return res
+      .status(400)
+      .json({ message: "You are not allowed to perform this action!" });
+  }
+  let orders;
+  try {
+    orders = await Order.find({});
+    if (!orders) {
+      throw new Error("Something went wrong!");
+    }
+  } catch (error) {
+    return res.status(404).json({ message: "Something went wrong!" });
+  }
+
+  return res.status(200).json({
+    orders: orders.map((ord) => {
+      return ord.toObject({ getters: true });
+    }),
+  });
+};
+
 exports.orderCreator = orderCreator;
 exports.getOrderByOrderId = getOrderByOrderId;
 exports.getOrderByUser = getOrderByUser;
 exports.editOrderById = editOrderById;
+exports.getAllOrders = getAllOrders;

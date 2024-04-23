@@ -261,6 +261,36 @@ const userBankDetails = async (req, res) => {
   return res.status(200).json({ message: "Bank details added.", user });
 };
 
+const getAllUsersDetails = async (req, res) => {
+  const { id } = req.query;
+  let admin, users;
+  try {
+    admin = await User.findById(id);
+    if (!admin) {
+      throw new Error("No user found!");
+    }
+    if (!admin.isAdmin) {
+      throw new Error("You are not allowed!");
+    }
+  } catch (error) {
+    return res.status(404).json({ message: "You are not allowed!" });
+  }
+  try {
+    users = await User.find({});
+    if (!users) {
+      throw new Error("No users found!");
+    }
+  } catch (error) {
+    return res.status(404).json({ message: "No users found!" });
+  }
+
+  return res.status(200).json({
+    users: users.map((usr) => {
+      return usr.toObject({ getters: true });
+    }),
+  });
+};
+
 exports.userRegistration = userRegistration;
 exports.userLogin = userLogin;
 exports.userIsLoggedIn = userIsLoggedIn;
@@ -268,3 +298,4 @@ exports.userAnalyticsReportAdder = userAnalyticsReportAdder;
 exports.userFinancialReportAdder = userFinancialReportAdder;
 exports.getUserDetailsWithUserId = getUserDetailsWithUserId;
 exports.userBankDetails = userBankDetails;
+exports.getAllUsersDetails = getAllUsersDetails;

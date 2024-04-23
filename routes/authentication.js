@@ -9,5 +9,6 @@ router.post("/session-checker", authController.userIsLoggedIn);
 router.post("/add-report", authController.userAnalyticsReportAdder);
 router.post("/add-financial-report", authController.userFinancialReportAdder);
 router.post("/user-bank-detail", authController.userBankDetails);
+router.get("/get-all-user", authController.getAllUsersDetails);
 
 module.exports = router;

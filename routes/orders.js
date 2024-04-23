@@ -17,6 +17,7 @@ router.post(
 );
 
 router.get("/get-order", orderController.getOrderByOrderId);
+router.get("/get-all-orders", orderController.getAllOrders);
 
 router.get("/user-all-orders", orderController.getOrderByUser);
 
