@@ -285,6 +285,7 @@ const editOrderById = async (req, res) => {
     order.thumbnail = img.path;
     order.file = file.path;
     order.remark = "";
+    order.status = "waiting";
   }
 
   try {
