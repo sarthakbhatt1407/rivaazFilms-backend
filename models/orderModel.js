@@ -9,7 +9,7 @@ const orderSchema = mongoose.Schema({
   dateOfRelease: { type: String, required: true },
   albumType: { type: String, required: true },
   language: { type: String, required: true },
-  thumbnail: { type: String, required: true },
+  thumbnail: { type: String },
   orderDateAndTime: { type: String, required: true },
   file: { type: String, required: true },
   mood: { type: String, required: true },

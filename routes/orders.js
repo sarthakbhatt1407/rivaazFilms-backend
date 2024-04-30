@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const orderController = require("../controller/orderController");
 const fileUpload = require("../middleware/fileUpload");
+const ImgUpload = require("../middleware/ImgUpload");
 
 router.post(
   "/new-order",
@@ -10,12 +11,17 @@ router.post(
       name: "file",
     },
     {
-      name: "thumbnail",
+      name: "image",
     },
   ]),
   orderController.orderCreator
 );
 
+router.post(
+  "/add-order-image",
+  ImgUpload.array("image"),
+  orderController.addImage
+);
 router.get("/get-order", orderController.getOrderByOrderId);
 router.get("/get-all-orders", orderController.getAllOrders);
 

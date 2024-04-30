@@ -88,16 +88,7 @@ const orderCreator = async (req, res) => {
   if (!req.files) {
     return res.status(400).json({ message: "Please upload files!" });
   }
-  if (!req.files.file || !req.files.thumbnail) {
-    if (req.files.file) {
-      fs.unlink(req.files.file[0].path, (err) => {});
-    }
-    if (req.files.thumbnail) {
-      fs.unlink(req.files.thumbnail[0].path, (err) => {});
-    }
-    return res.status(400).json({ message: "Please upload files!" });
-  }
-  const img = req.files.thumbnail[0];
+
   const file = req.files.file[0];
 
   const dateAndTime = dateFetcher();
@@ -108,7 +99,7 @@ const orderCreator = async (req, res) => {
     albumType,
     language,
     userId,
-    thumbnail: img.path,
+    thumbnail: "",
     file: file.path,
     mood,
     description,
@@ -132,10 +123,41 @@ const orderCreator = async (req, res) => {
   } catch (error) {
     console.log(error);
     fs.unlink(file.path, (err) => {});
-    fs.unlink(img.path, (err) => {});
+
     return res.status(400).json({ message: "Unable to create order" });
   }
   return res.status(200).json({ message: "Order created", createdOrder });
+};
+
+const addImage = async (req, res) => {
+  const { orderId } = req.body;
+
+  let order;
+  try {
+    order = await Order.findById(orderId);
+    if (!order) {
+      throw new Error("No order found");
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({ message: "No order found" });
+  }
+
+  if (!req.files) {
+    return res.status(400).json({ message: "Please upload files!" });
+  }
+
+  const img = req.files[0];
+
+  order.thumbnail = img.path;
+  try {
+    await order.save();
+  } catch (error) {
+    console.log(error);
+
+    return res.status(404).json({ message: "unable to update order" });
+  }
+  return res.status(200).json({ message: "order updated successfully", order });
 };
 
 const getOrderByOrderId = async (req, res) => {
@@ -249,24 +271,14 @@ const editOrderById = async (req, res) => {
     }
   }
 
-  let img, file;
+  let file;
   if (action === "edit") {
     if (!req.files) {
       return res.status(400).json({ message: "Please upload files!" });
     }
-    if (!req.files.file || !req.files.thumbnail) {
-      if (req.files.file) {
-        fs.unlink(req.files.file[0].path, (err) => {});
-      }
-      if (req.files.thumbnail) {
-        fs.unlink(req.files.thumbnail[0].path, (err) => {});
-      }
-      return res.status(400).json({ message: "Please upload files!" });
-    }
-    const img = req.files.thumbnail[0];
+
     const file = req.files.file[0];
 
-    fs.unlink(order.thumbnail, (err) => {});
     fs.unlink(order.file, (err) => {});
 
     order.labelName = labelName;
@@ -282,7 +294,7 @@ const editOrderById = async (req, res) => {
     order.starCast = starCast;
     order.lyrics = lyrics;
     order.language = language;
-    order.thumbnail = img.path;
+    order.thumbnail = "";
     order.file = file.path;
     order.remark = "";
     order.status = "waiting";
@@ -293,7 +305,6 @@ const editOrderById = async (req, res) => {
   } catch (error) {
     console.log(error);
     fs.unlink(file.path, (err) => {});
-    fs.unlink(img.path, (err) => {});
     return res.status(404).json({ message: "unable to update order" });
   }
   return res.status(200).json({ message: "order updated successfully", order });
@@ -337,3 +348,4 @@ exports.getOrderByOrderId = getOrderByOrderId;
 exports.getOrderByUser = getOrderByUser;
 exports.editOrderById = editOrderById;
 exports.getAllOrders = getAllOrders;
+exports.addImage = addImage;
