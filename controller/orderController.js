@@ -2,6 +2,13 @@ const Order = require("../models/orderModel");
 const { v4: uuidv4 } = require("uuid");
 const User = require("../models/user");
 
+const cloudinary = require("cloudinary");
+
+cloudinary.config({
+  cloud_name: "dt0jiqrmv",
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 const fs = require("fs");
 
 const months = [
@@ -148,13 +155,29 @@ const addImage = async (req, res) => {
   }
 
   const img = req.files[0];
+  if (order.thumbnail.trim().length > 0) {
+    const imgPathArr = order.thumbnail.split("/");
+    const targetImg = "rivaaz-films" + "/" + imgPathArr[imgPathArr.length - 1];
+
+    cloudinary.v2.api
+      .delete_resources([targetImg.split(".")[0]], {
+        type: "upload",
+        resource_type: "image",
+      })
+      .then(console.log);
+  }
 
   order.thumbnail = img.path;
   try {
     await order.save();
   } catch (error) {
     console.log(error);
-
+    cloudinary.v2.api
+      .delete_resources([req.files.filename], {
+        type: "upload",
+        resource_type: "image",
+      })
+      .then(console.log);
     return res.status(404).json({ message: "unable to update order" });
   }
   return res.status(200).json({ message: "order updated successfully", order });
@@ -232,6 +255,16 @@ const editOrderById = async (req, res) => {
 
   if (action === "delete") {
     order.deleted = true;
+    const imgPathArr = order.thumbnail.split("/");
+    const targetImg = "rivaaz-films" + "/" + imgPathArr[imgPathArr.length - 1];
+
+    cloudinary.v2.api
+      .delete_resources([targetImg.split(".")[0]], {
+        type: "upload",
+        resource_type: "image",
+      })
+      .then(console.log);
+    fs.unlink(order.file, (err) => {});
   }
   if (action === "restore") {
     order.deleted = false;
@@ -294,7 +327,7 @@ const editOrderById = async (req, res) => {
     order.starCast = starCast;
     order.lyrics = lyrics;
     order.language = language;
-    order.thumbnail = "";
+
     order.file = file.path;
     order.remark = "";
     order.status = "waiting";
