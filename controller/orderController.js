@@ -91,6 +91,10 @@ const orderCreator = async (req, res) => {
     subLabel1,
     subLabel2,
     subLabel3,
+    upc,
+    isrc,
+    lyricist,
+    crbt,
   } = req.body;
   if (!req.files) {
     return res.status(400).json({ message: "Please upload files!" });
@@ -123,6 +127,10 @@ const orderCreator = async (req, res) => {
     subLabel1,
     subLabel2,
     subLabel3,
+    upc,
+    isrc,
+    lyricist,
+    crbt,
   });
 
   try {
@@ -239,6 +247,10 @@ const editOrderById = async (req, res) => {
     subLabel1,
     subLabel2,
     subLabel3,
+    upc,
+    isrc,
+    lyricist,
+    crbt,
   } = req.body;
 
   let order, user;
@@ -327,6 +339,10 @@ const editOrderById = async (req, res) => {
     order.starCast = starCast;
     order.lyrics = lyrics;
     order.language = language;
+    order.upc = upc;
+    order.isrc = isrc;
+    order.lyricist = lyricist;
+    order.crbt = crbt;
 
     order.file = file.path;
     order.remark = "";

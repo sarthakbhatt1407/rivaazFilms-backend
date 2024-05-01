@@ -24,6 +24,10 @@ const orderSchema = mongoose.Schema({
   status: { type: String },
   remark: { type: String },
   deleted: { type: Boolean },
+  upc: { type: String },
+  isrc: { type: String },
+  lyricist: { type: String, required: true },
+  crbt: { type: String },
 });
 
 module.exports = mongoose.model("Order", orderSchema);
