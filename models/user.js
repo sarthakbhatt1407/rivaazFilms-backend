@@ -13,7 +13,7 @@ const userSchema = mongoose.Schema({
   userSince: { type: String, required: true },
   isAdmin: { type: Boolean, required: true },
   bankDetails: { type: Array, required: true },
-  channelUrl: { type: Array, required: true },
+  channelUrl: { type: String, required: true },
   sign: { type: String, required: true },
   userPic: { type: String, required: true },
 });

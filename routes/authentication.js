@@ -22,5 +22,9 @@ router.post("/add-report", authController.userAnalyticsReportAdder);
 router.post("/add-financial-report", authController.userFinancialReportAdder);
 router.post("/user-bank-detail", authController.userBankDetails);
 router.get("/get-all-user", authController.getAllUsersDetails);
-
+router.post("/forgot-verify-otp", authController.verifyForgotPassOtp);
+router.post("/forgot-send-email", authController.forgotPassOtpSender);
+router.post("/reset-password", authController.passwordReseter);
+router.post("/verify-otp", authController.verifyOtp);
+router.post("/send-email", authController.sendEmailForOtp);
 module.exports = router;
