@@ -278,6 +278,7 @@ const userLogin = async (req, res, next) => {
       user: {
         id: user.id,
         isAdmin: user.isAdmin,
+        name: user.name,
       },
       message: "Logged In",
       isloggedIn: true,
