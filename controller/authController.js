@@ -26,7 +26,8 @@ const validateEmail = (email) => {
 };
 
 const userRegistration = async (req, res, next) => {
-  const { name, email, password, phone, city, state, country } = req.body;
+  const { name, email, password, phone, city, state, country, channelUrl } =
+    req.body;
 
   //
   const date = new Date();
@@ -51,6 +52,7 @@ const userRegistration = async (req, res, next) => {
       city,
       state,
       country,
+      channelUrl,
       bankDetails: [
         {
           accountNo: "",

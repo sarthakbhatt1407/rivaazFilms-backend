@@ -28,6 +28,7 @@ const orderSchema = mongoose.Schema({
   isrc: { type: String },
   lyricist: { type: String, required: true },
   crbt: { type: String },
+  genre: { type: String },
 });
 
 module.exports = mongoose.model("Order", orderSchema);

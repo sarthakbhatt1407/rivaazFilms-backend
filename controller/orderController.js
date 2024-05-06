@@ -95,6 +95,7 @@ const orderCreator = async (req, res) => {
     isrc,
     lyricist,
     crbt,
+    genre,
   } = req.body;
   if (!req.files) {
     return res.status(400).json({ message: "Please upload files!" });
@@ -131,6 +132,7 @@ const orderCreator = async (req, res) => {
     isrc,
     lyricist,
     crbt,
+    genre,
   });
 
   try {
@@ -251,6 +253,7 @@ const editOrderById = async (req, res) => {
     isrc,
     lyricist,
     crbt,
+    genre,
   } = req.body;
 
   let order, user;
@@ -340,6 +343,7 @@ const editOrderById = async (req, res) => {
     order.lyrics = lyrics;
     order.language = language;
     order.upc = upc;
+    order.genre = genre;
     order.isrc = isrc;
     order.lyricist = lyricist;
     order.crbt = crbt;
