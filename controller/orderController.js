@@ -396,9 +396,45 @@ const getAllOrders = async (req, res) => {
   });
 };
 
+const addUPCISRT = async (req, res) => {
+  const { id, upc, isrc, adminId } = req.body;
+
+  let admin;
+  try {
+    admin = await User.findById(adminId);
+    if (!admin || !admin.isAdmin) {
+      return res.status(400).json({ message: "Something went wrong" });
+    }
+  } catch (error) {
+    return res.status(400).json({ message: "Something went wrong" });
+  }
+  let order;
+  try {
+    order = await Order.findById(id);
+    if (!order) {
+      return res.status(400).json({ message: "No order found" });
+    }
+  } catch (error) {
+    return res.status(400).json({ message: "Something went wrong" });
+  }
+  order.upc = upc;
+  order.isrc = isrc;
+  order.status = "completed";
+  try {
+    order.markModified("upc");
+    order.markModified("isrc");
+    order.markModified("status");
+    await order.save();
+  } catch (error) {
+    return res.status(400).json({ message: "Something went wrong" });
+  }
+  return res.status(200).json({ message: "Order Updated Successfully", order });
+};
+
 exports.orderCreator = orderCreator;
 exports.getOrderByOrderId = getOrderByOrderId;
 exports.getOrderByUser = getOrderByUser;
 exports.editOrderById = editOrderById;
 exports.getAllOrders = getAllOrders;
 exports.addImage = addImage;
+exports.addUPCISRT = addUPCISRT;

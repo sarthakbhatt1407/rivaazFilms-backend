@@ -23,6 +23,7 @@ router.post(
   orderController.addImage
 );
 router.get("/get-order", orderController.getOrderByOrderId);
+router.post("/add-upc-isrc", orderController.addUPCISRT);
 router.get("/get-all-orders", orderController.getAllOrders);
 
 router.get("/user-all-orders", orderController.getOrderByUser);
