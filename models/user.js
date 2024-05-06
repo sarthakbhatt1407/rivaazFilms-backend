@@ -14,6 +14,8 @@ const userSchema = mongoose.Schema({
   isAdmin: { type: Boolean, required: true },
   bankDetails: { type: Array, required: true },
   channelUrl: { type: Array, required: true },
+  sign: { type: String, required: true },
+  userPic: { type: String, required: true },
 });
 
 module.exports = mongoose.model("User", userSchema);

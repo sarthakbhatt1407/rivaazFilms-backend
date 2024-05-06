@@ -40,6 +40,15 @@ const userRegistration = async (req, res, next) => {
   if (user && user.email === email) {
     return res.status(400).json({ message: "Email already exists." });
   } else {
+    let signImg, userPicImg;
+    signImg = req.files["sign"][0];
+    userPicImg = req.files["userPic"][0];
+
+    if (!req.files) {
+      return res.status(400).json({ message: "Please upload files!" });
+    }
+    const date = new Date();
+    const year = date.getFullYear();
     const createdUser = new User({
       name,
       email,
@@ -47,12 +56,47 @@ const userRegistration = async (req, res, next) => {
       userSince: months[month] + " " + year,
       isAdmin: false,
       phone,
-      finacialReport: [],
-      analytics: [],
+      finacialReport: [
+        {
+          [year]: {
+            Jan: 0,
+            Feb: 0,
+            Mar: 0,
+            Apr: 0,
+            May: 0,
+            Jun: 0,
+            Jul: 0,
+            Aug: 0,
+            Sep: 0,
+            Oct: 0,
+            Nov: 0,
+            Dec: 0,
+          },
+        },
+      ],
+      analytics: [
+        {
+          [year]: {
+            Spotify: 0,
+            Wynk: 0,
+            JioSaavn: 0,
+            Amazon: 0,
+            Gaana: 0,
+            YouTube: 0,
+            SoundCloud: 0,
+            Tiktok: 0,
+            Facebook: 0,
+            Hungama: 0,
+            Other: 0,
+          },
+        },
+      ],
       city,
       state,
       country,
       channelUrl,
+      sign: signImg.path,
+      userPic: userPicImg.path,
       bankDetails: [
         {
           accountNo: "",
