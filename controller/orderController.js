@@ -96,6 +96,10 @@ const orderCreator = async (req, res) => {
     lyricist,
     crbt,
     genre,
+    artistAppleId,
+    artistSpotifyId,
+    artistFacebookUrl,
+    artistInstagramUrl,
   } = req.body;
   if (!req.files) {
     return res.status(400).json({ message: "Please upload files!" });
@@ -133,6 +137,10 @@ const orderCreator = async (req, res) => {
     lyricist,
     crbt,
     genre,
+    artistAppleId,
+    artistSpotifyId,
+    artistFacebookUrl,
+    artistInstagramUrl,
   });
 
   try {
@@ -254,6 +262,10 @@ const editOrderById = async (req, res) => {
     lyricist,
     crbt,
     genre,
+    artistAppleId,
+    artistSpotifyId,
+    artistFacebookUrl,
+    artistInstagramUrl,
   } = req.body;
 
   let order, user;
@@ -349,6 +361,10 @@ const editOrderById = async (req, res) => {
     order.crbt = crbt;
 
     order.file = file.path;
+    order.artistAppleId = artistAppleId;
+    order.artistSpotifyId = artistSpotifyId;
+    order.artistFacebookUrl = artistFacebookUrl;
+    order.artistInstagramUrl = artistInstagramUrl;
     order.remark = "";
     order.status = "waiting";
   }
