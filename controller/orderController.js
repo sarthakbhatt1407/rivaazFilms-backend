@@ -96,10 +96,18 @@ const orderCreator = async (req, res) => {
     lyricist,
     crbt,
     genre,
-    artistAppleId,
-    artistSpotifyId,
-    artistFacebookUrl,
-    artistInstagramUrl,
+    singerAppleId,
+    singerSpotifyId,
+    singerFacebookUrl,
+    singerInstagramUrl,
+    composerAppleId,
+    composerSpotifyId,
+    composerFacebookUrl,
+    composerInstagramUrl,
+    lyricistAppleId,
+    lyricistSpotifyId,
+    lyricistFacebookUrl,
+    lyricistInstagramUrl,
   } = req.body;
   if (!req.files) {
     return res.status(400).json({ message: "Please upload files!" });
@@ -137,10 +145,18 @@ const orderCreator = async (req, res) => {
     lyricist,
     crbt,
     genre,
-    artistAppleId,
-    artistSpotifyId,
-    artistFacebookUrl,
-    artistInstagramUrl,
+    singerAppleId,
+    singerSpotifyId,
+    singerFacebookUrl,
+    singerInstagramUrl,
+    composerAppleId,
+    composerSpotifyId,
+    composerFacebookUrl,
+    composerInstagramUrl,
+    lyricistAppleId,
+    lyricistSpotifyId,
+    lyricistFacebookUrl,
+    lyricistInstagramUrl,
   });
 
   try {
@@ -262,10 +278,18 @@ const editOrderById = async (req, res) => {
     lyricist,
     crbt,
     genre,
-    artistAppleId,
-    artistSpotifyId,
-    artistFacebookUrl,
-    artistInstagramUrl,
+    singerAppleId,
+    singerSpotifyId,
+    singerFacebookUrl,
+    singerInstagramUrl,
+    composerAppleId,
+    composerSpotifyId,
+    composerFacebookUrl,
+    composerInstagramUrl,
+    lyricistAppleId,
+    lyricistSpotifyId,
+    lyricistFacebookUrl,
+    lyricistInstagramUrl,
   } = req.body;
 
   let order, user;
@@ -361,10 +385,21 @@ const editOrderById = async (req, res) => {
     order.crbt = crbt;
 
     order.file = file.path;
-    order.artistAppleId = artistAppleId;
-    order.artistSpotifyId = artistSpotifyId;
-    order.artistFacebookUrl = artistFacebookUrl;
-    order.artistInstagramUrl = artistInstagramUrl;
+    order.singerAppleId = singerAppleId;
+    order.singerSpotifyId = singerSpotifyId;
+    order.singerFacebookUrl = singerFacebookUrl;
+    order.singerInstagramUrl = singerInstagramUrl;
+    order.composerAppleId = composerAppleId;
+    order.composerSpotifyId = composerSpotifyId;
+    order.composerFacebookUrl = composerFacebookUrl;
+    order.composerInstagramUrl = composerInstagramUrl;
+    order.lyricistAppleId = lyricistAppleId;
+    order.lyricistSpotifyId = lyricistSpotifyId;
+    order.lyricistFacebookUrl = lyricistFacebookUrl;
+    order.lyricistInstagramUrl = lyricistInstagramUrl;
+    order.subLabel1 = subLabel1;
+    order.subLabel2 = subLabel2;
+    order.subLabel3 = subLabel3;
     order.remark = "";
     order.status = "waiting";
   }
