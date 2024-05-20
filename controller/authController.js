@@ -805,7 +805,7 @@ const forgotPassOtpSender = async (req, res) => {
   let info;
   try {
     info = await transporter.sendMail({
-      from: '"imshrimatiji" work.fusionavinya@gmail.com', // sender address
+      from: '"Rivaaz Films" work.fusionavinya@gmail.com', // sender address
       to: `${email}`, // list of receivers
       subject: "Password reset", // Subject line
       text: "Hello world?", // plain text body
