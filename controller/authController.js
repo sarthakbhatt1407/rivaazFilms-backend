@@ -2,7 +2,7 @@ const User = require("../models/user");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
-
+const cloudinary = require("cloudinary");
 const transporter = nodemailer.createTransport({
   service: "Gmail",
   host: "smtp.gmail.com",
@@ -844,6 +844,44 @@ const verifyForgotPassOtp = async (req, res) => {
   }
 };
 
+const editProfile = async (req, res) => {
+  const { userId, name, phone, channelUrl, userPic } = req.body;
+  let user;
+  if (!req.files) {
+    return res.status(400).json({ message: "Please upload files!" });
+  }
+  try {
+    user = await User.findById(userId);
+    if (!user) {
+      throw new Error();
+    }
+  } catch (error) {
+    return res.status(404).json({ message: "User not found!" });
+  }
+  if (!req.files) {
+    return res.status(400).json({ message: "Please upload files!" });
+  }
+  const imgPathArr = user.userPic.split("/");
+  const targetImg = "rivaaz-films" + "/" + imgPathArr[imgPathArr.length - 1];
+  cloudinary.v2.api
+    .delete_resources([targetImg.split(".")[0]], {
+      type: "upload",
+      resource_type: "image",
+    })
+    .then(console.log);
+  const img = req.files.userPic[0];
+  user.name = name;
+  user.phone = phone;
+  user.channelUrl = channelUrl;
+  user.userPic = img.path;
+  try {
+    await user.save();
+  } catch (error) {
+    return res.status(400).json({ message: "Something went wrong!" });
+  }
+  return res.status(200).json({ message: "Profile Updated." });
+};
+
 exports.userRegistration = userRegistration;
 exports.userLogin = userLogin;
 exports.userIsLoggedIn = userIsLoggedIn;
@@ -857,3 +895,4 @@ exports.verifyForgotPassOtp = verifyForgotPassOtp;
 exports.passwordReseter = passwordReseter;
 exports.verifyOtp = verifyOtp;
 exports.sendEmailForOtp = sendEmailForOtp;
+exports.editProfile = editProfile;

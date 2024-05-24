@@ -27,4 +27,16 @@ router.post("/forgot-send-email", authController.forgotPassOtpSender);
 router.post("/reset-password", authController.passwordReseter);
 router.post("/verify-otp", authController.verifyOtp);
 router.post("/send-email", authController.sendEmailForOtp);
+router.post(
+  "/edit-profile",
+  ImgUpload.fields([
+    {
+      name: "sign",
+    },
+    {
+      name: "userPic",
+    },
+  ]),
+  authController.editProfile
+);
 module.exports = router;
