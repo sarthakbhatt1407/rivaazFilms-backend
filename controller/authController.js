@@ -256,6 +256,7 @@ const userRegistration = async (req, res, next) => {
       country,
       channelUrl,
       sign: signImg.path,
+      paidEarning: 0,
       userPic: userPicImg.path,
       bankDetails: [
         {
@@ -882,6 +883,58 @@ const editProfile = async (req, res) => {
   return res.status(200).json({ message: "Profile Updated." });
 };
 
+const addPaidEarning = async (req, res) => {
+  const { userId, paid, adminId } = req.body;
+  let user, admin;
+  try {
+    admin = await User.findById(adminId);
+    if (!admin.isAdmin) {
+      return res.status(400).json({ message: "You are not allowed!" });
+    }
+    user = await User.findById(userId);
+    if (!user) {
+      throw new Error();
+    }
+  } catch (error) {
+    return res.status(404).json({ message: "User not found!" });
+  }
+  const updatedPaid = user.paidEarning + paid;
+  user.paidEarning = updatedPaid;
+
+  try {
+    user.markModified("paidEarning");
+    await user.save();
+  } catch (error) {
+    return res.status(400).json({ message: "Something went wrong!" });
+  }
+  return res.status(200).json({ message: "Earnings Updated." });
+};
+const editPaid = async (req, res) => {
+  const { userId, paid, adminId } = req.body;
+  let user, admin;
+  try {
+    admin = await User.findById(adminId);
+    if (!admin.isAdmin) {
+      return res.status(400).json({ message: "You are not allowed!" });
+    }
+    user = await User.findById(userId);
+    if (!user) {
+      throw new Error();
+    }
+  } catch (error) {
+    return res.status(404).json({ message: "User not found!" });
+  }
+  user.paidEarning = paid;
+
+  try {
+    user.markModified("paidEarning");
+    await user.save();
+  } catch (error) {
+    return res.status(400).json({ message: "Something went wrong!" });
+  }
+  return res.status(200).json({ message: "Earnings Updated." });
+};
+
 exports.userRegistration = userRegistration;
 exports.userLogin = userLogin;
 exports.userIsLoggedIn = userIsLoggedIn;
@@ -896,3 +949,5 @@ exports.passwordReseter = passwordReseter;
 exports.verifyOtp = verifyOtp;
 exports.sendEmailForOtp = sendEmailForOtp;
 exports.editProfile = editProfile;
+exports.addPaidEarning = addPaidEarning;
+exports.editPaid = editPaid;

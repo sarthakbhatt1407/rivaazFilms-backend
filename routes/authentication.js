@@ -26,6 +26,8 @@ router.post("/forgot-verify-otp", authController.verifyForgotPassOtp);
 router.post("/forgot-send-email", authController.forgotPassOtpSender);
 router.post("/reset-password", authController.passwordReseter);
 router.post("/verify-otp", authController.verifyOtp);
+router.post("/paid-earning", authController.addPaidEarning);
+router.post("/edit-paid", authController.editPaid);
 router.post("/send-email", authController.sendEmailForOtp);
 router.post(
   "/edit-profile",

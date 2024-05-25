@@ -16,6 +16,7 @@ const userSchema = mongoose.Schema({
   channelUrl: { type: String, required: true },
   sign: { type: String, required: true },
   userPic: { type: String, required: true },
+  paidEarning: { type: Number, required: true },
 });
 
 module.exports = mongoose.model("User", userSchema);
