@@ -29,6 +29,7 @@ const orderSchema = mongoose.Schema({
   lyricist: { type: String },
   crbt: { type: String },
   genre: { type: String },
+  musicDirector: { type: String },
   singerAppleId: { type: String },
   singerSpotifyId: { type: String },
   singerFacebookUrl: { type: String },

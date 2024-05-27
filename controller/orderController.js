@@ -108,6 +108,7 @@ const orderCreator = async (req, res) => {
     lyricistSpotifyId,
     lyricistFacebookUrl,
     lyricistInstagramUrl,
+    musicDirector,
   } = req.body;
   if (!req.files) {
     return res.status(400).json({ message: "Please upload files!" });
@@ -143,6 +144,7 @@ const orderCreator = async (req, res) => {
     upc,
     isrc,
     lyricist,
+    musicDirector,
     crbt,
     genre,
     singerAppleId,
@@ -158,7 +160,6 @@ const orderCreator = async (req, res) => {
     lyricistFacebookUrl,
     lyricistInstagramUrl,
   });
-
   try {
     await createdOrder.save();
   } catch (error) {
@@ -268,6 +269,7 @@ const editOrderById = async (req, res) => {
     director,
     producer,
     starCast,
+    musicDirector,
     lyrics,
     remark,
     subLabel1,
@@ -383,6 +385,7 @@ const editOrderById = async (req, res) => {
     order.isrc = isrc;
     order.lyricist = lyricist;
     order.crbt = crbt;
+    order.musicDirector = musicDirector;
 
     order.file = file.path;
     order.singerAppleId = singerAppleId;
