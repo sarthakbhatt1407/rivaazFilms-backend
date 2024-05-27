@@ -255,6 +255,7 @@ const getOrderByUser = async (req, res) => {
 
 const editOrderById = async (req, res) => {
   const { id, action, userId } = req.query;
+  console.log(action);
 
   const {
     labelName,
@@ -292,6 +293,7 @@ const editOrderById = async (req, res) => {
     lyricistSpotifyId,
     lyricistFacebookUrl,
     lyricistInstagramUrl,
+    admin,
   } = req.body;
 
   let order, user;
@@ -325,6 +327,7 @@ const editOrderById = async (req, res) => {
   if (
     action === "statusAccepted" ||
     action === "statusRejected" ||
+    action === "takedown" ||
     action === "completed"
   ) {
     try {
@@ -353,6 +356,11 @@ const editOrderById = async (req, res) => {
     }
     if (action === "completed") {
       order.status = "completed";
+      order.remark = "";
+    }
+    if (action === "takedown") {
+      console.log(action);
+      order.status = "takedown";
       order.remark = "";
     }
   }
@@ -404,7 +412,10 @@ const editOrderById = async (req, res) => {
     order.subLabel2 = subLabel2;
     order.subLabel3 = subLabel3;
     order.remark = "";
-    order.status = "waiting";
+    console.log(admin);
+    if (!admin) {
+      order.status = "waiting";
+    }
   }
 
   try {
