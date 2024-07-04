@@ -5,10 +5,11 @@ const User = require("../models/user");
 const cloudinary = require("cloudinary");
 
 cloudinary.config({
-  cloud_name: "dt0jiqrmv",
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
 const fs = require("fs");
 
 const months = [
@@ -173,7 +174,7 @@ const orderCreator = async (req, res) => {
 
 const addImage = async (req, res) => {
   const { orderId } = req.body;
-
+  console.log(req.files);
   let order;
   try {
     order = await Order.findById(orderId);

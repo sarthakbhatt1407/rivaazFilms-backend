@@ -330,11 +330,11 @@ const sendEmailForOtp = async (req, res) => {
   let info;
   try {
     info = await transporter.sendMail({
-      from: '"Rivaaz Films" work.fusionavinya@gmail.com', // sender address
+      from: '"Rivaaz Films" inforivaazfilms@gmail.com', // sender address
       to: `${email}`, // list of receivers
       subject: "Verification", // Subject line
       text: "Hello world?", // plain text body
-      html: `<b>your otp is ${otp} </b>`, // html body
+      html: `<b>Your otp is ${otp} </b>`, // html body
     });
   } catch (error) {
     return res.json({ info, message: "Unable to send", sent: false });
@@ -413,7 +413,7 @@ const userLogin = async (req, res, next) => {
       success: false,
     });
   }
-
+  console.log(user);
   //   passIsValid = await bcrypt.compare(password, user.password);
   if (user && email === user.email && password === user.password) {
     token = jwt.sign({ userId: user.id, userEmail: email }, "secret_key");
