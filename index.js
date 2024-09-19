@@ -40,7 +40,7 @@ app.use(
     secret: "secret-key",
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 60000 * 30 }, // session timeout of 60 seconds
+    cookie: { maxAge: 60000 * 30 },
   })
 );
 app.use("/user", authenticationRoute);
