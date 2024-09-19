@@ -2,10 +2,11 @@
 const session = require("express-session");
 const express = require("express");
 const app = express();
+const path = require("path");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 dotenv.config();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
 // imports
 const corsPolicy = require("./middleware/CORS");
@@ -21,7 +22,17 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // file serving
-app.use("/uploads", express.static("uploads"));
+// Absolute paths for the directories
+const imageUploadDirectory = path.join("uploads/images");
+const audioUploadDirectory = path.join("uploads/audios");
+const documentUploadDirectory = path.join("uploads/documents");
+const reportUploadDirectory = path.join("uploads/reports");
+
+// Serve static files
+app.use("/uploads/images", express.static(imageUploadDirectory));
+app.use("/uploads/audios", express.static(audioUploadDirectory));
+app.use("/uploads/documents", express.static(documentUploadDirectory));
+app.use("/uploads/reports", express.static(reportUploadDirectory));
 
 // Routes
 app.use(
@@ -37,18 +48,10 @@ app.use("/order", orders);
 app.use("/file", fileRoute);
 app.use("/copyright", copyrightRoute);
 app.use("/query", querytRoute);
-// app.use("/", (req, res) => {
-//   res.send(
-//     "<a target='_blank' href='http://localhost:5000/file/download/?filePath=uploads\\audiof09f558d-814e-47ec-a3ff-e379f858dc98-sample.mp3'>Click</a>"
-//   );
-// });
-app.use(
-  "/upload",
 
-  (req, res) => {
-    return res.status(200).json({ message: "done" });
-  }
-);
+app.use("/", (req, res) => {
+  res.send("<h1>App is succesfully live on server.</h1>");
+});
 
 // Database
 mongoose

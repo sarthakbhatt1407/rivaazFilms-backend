@@ -1,8 +1,9 @@
 const User = require("../models/user");
-const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
-const cloudinary = require("cloudinary");
+
+const fs = require("fs");
+
 const transporter = nodemailer.createTransport({
   service: "Gmail",
   host: "smtp.gmail.com",
@@ -55,13 +56,13 @@ const userRegistration = async (req, res, next) => {
   if (user && user.email === email) {
     return res.status(400).json({ message: "Email already exists." });
   } else {
+    if (!req.files) {
+      return res.status(400).json({ message: "Please upload files!" });
+    }
     let signImg, userPicImg;
     signImg = req.files["sign"][0];
     userPicImg = req.files["userPic"][0];
 
-    if (!req.files) {
-      return res.status(400).json({ message: "Please upload files!" });
-    }
     const date = new Date();
     const year = date.getFullYear();
     const createdUser = new User({
@@ -94,6 +95,7 @@ const userRegistration = async (req, res, next) => {
           [year]: {
             Jan: {
               Spotify: 0,
+              "Apple Music": 0,
               Wynk: 0,
               JioSaavn: 0,
               Amazon: 0,
@@ -108,6 +110,7 @@ const userRegistration = async (req, res, next) => {
             Feb: {
               Spotify: 0,
               Wynk: 0,
+              "Apple Music": 0,
               JioSaavn: 0,
               Amazon: 0,
               Gaana: 0,
@@ -124,6 +127,7 @@ const userRegistration = async (req, res, next) => {
               JioSaavn: 0,
               Amazon: 0,
               Gaana: 0,
+              "Apple Music": 0,
               YouTube: 0,
               SoundCloud: 0,
               Tiktok: 0,
@@ -135,6 +139,7 @@ const userRegistration = async (req, res, next) => {
               Spotify: 0,
               Wynk: 0,
               JioSaavn: 0,
+              "Apple Music": 0,
               Amazon: 0,
               Gaana: 0,
               YouTube: 0,
@@ -146,6 +151,7 @@ const userRegistration = async (req, res, next) => {
             },
             May: {
               Spotify: 0,
+              "Apple Music": 0,
               Wynk: 0,
               JioSaavn: 0,
               Amazon: 0,
@@ -160,6 +166,7 @@ const userRegistration = async (req, res, next) => {
             Jun: {
               Spotify: 0,
               Wynk: 0,
+              "Apple Music": 0,
               JioSaavn: 0,
               Amazon: 0,
               Gaana: 0,
@@ -171,6 +178,7 @@ const userRegistration = async (req, res, next) => {
               Other: 0,
             },
             Jul: {
+              "Apple Music": 0,
               Spotify: 0,
               Wynk: 0,
               JioSaavn: 0,
@@ -185,6 +193,7 @@ const userRegistration = async (req, res, next) => {
             },
             Aug: {
               Spotify: 0,
+              "Apple Music": 0,
               Wynk: 0,
               JioSaavn: 0,
               Amazon: 0,
@@ -198,6 +207,7 @@ const userRegistration = async (req, res, next) => {
             },
             Sep: {
               Spotify: 0,
+              "Apple Music": 0,
               Wynk: 0,
               JioSaavn: 0,
               Amazon: 0,
@@ -212,6 +222,7 @@ const userRegistration = async (req, res, next) => {
             Oct: {
               Spotify: 0,
               Wynk: 0,
+              "Apple Music": 0,
               JioSaavn: 0,
               Amazon: 0,
               Gaana: 0,
@@ -226,6 +237,7 @@ const userRegistration = async (req, res, next) => {
               Spotify: 0,
               Wynk: 0,
               JioSaavn: 0,
+              "Apple Music": 0,
               Amazon: 0,
               Gaana: 0,
               YouTube: 0,
@@ -238,6 +250,7 @@ const userRegistration = async (req, res, next) => {
             Dec: {
               Spotify: 0,
               Wynk: 0,
+              "Apple Music": 0,
               JioSaavn: 0,
               Amazon: 0,
               Gaana: 0,
@@ -413,7 +426,6 @@ const userLogin = async (req, res, next) => {
       success: false,
     });
   }
-  console.log(user);
   //   passIsValid = await bcrypt.compare(password, user.password);
   if (user && email === user.email && password === user.password) {
     token = jwt.sign({ userId: user.id, userEmail: email }, "secret_key");
@@ -447,15 +459,6 @@ const userIsLoggedIn = async (req, res) => {
   }
 };
 
-const destroySession = async (req, res) => {
-  req.session.destroy(function (err) {
-    console.log("Destroyed session");
-  });
-  return res
-    .status(200)
-    .json({ message: "logout successfully", isLoggedIn: false });
-};
-
 const userAnalyticsReportAdder = async (req, res) => {
   const { userId, adminId, year, report, month } = req.body;
   let user, admin;
@@ -480,6 +483,7 @@ const userAnalyticsReportAdder = async (req, res) => {
     userAnalyticsReport[0][year] = {
       Jan: {
         Spotify: 0,
+        "Apple Music": 0,
         Wynk: 0,
         JioSaavn: 0,
         Amazon: 0,
@@ -493,6 +497,7 @@ const userAnalyticsReportAdder = async (req, res) => {
       },
       Feb: {
         Spotify: 0,
+        "Apple Music": 0,
         Wynk: 0,
         JioSaavn: 0,
         Amazon: 0,
@@ -506,6 +511,7 @@ const userAnalyticsReportAdder = async (req, res) => {
       },
       Mar: {
         Spotify: 0,
+        "Apple Music": 0,
         Wynk: 0,
         JioSaavn: 0,
         Amazon: 0,
@@ -519,6 +525,7 @@ const userAnalyticsReportAdder = async (req, res) => {
       },
       Apr: {
         Spotify: 0,
+        "Apple Music": 0,
         Wynk: 0,
         JioSaavn: 0,
         Amazon: 0,
@@ -532,6 +539,7 @@ const userAnalyticsReportAdder = async (req, res) => {
       },
       May: {
         Spotify: 0,
+        "Apple Music": 0,
         Wynk: 0,
         JioSaavn: 0,
         Amazon: 0,
@@ -545,6 +553,7 @@ const userAnalyticsReportAdder = async (req, res) => {
       },
       Jun: {
         Spotify: 0,
+        "Apple Music": 0,
         Wynk: 0,
         JioSaavn: 0,
         Amazon: 0,
@@ -558,6 +567,7 @@ const userAnalyticsReportAdder = async (req, res) => {
       },
       Jul: {
         Spotify: 0,
+        "Apple Music": 0,
         Wynk: 0,
         JioSaavn: 0,
         Amazon: 0,
@@ -571,6 +581,7 @@ const userAnalyticsReportAdder = async (req, res) => {
       },
       Aug: {
         Spotify: 0,
+        "Apple Music": 0,
         Wynk: 0,
         JioSaavn: 0,
         Amazon: 0,
@@ -584,6 +595,7 @@ const userAnalyticsReportAdder = async (req, res) => {
       },
       Sep: {
         Spotify: 0,
+        "Apple Music": 0,
         Wynk: 0,
         JioSaavn: 0,
         Amazon: 0,
@@ -597,6 +609,7 @@ const userAnalyticsReportAdder = async (req, res) => {
       },
       Oct: {
         Spotify: 0,
+        "Apple Music": 0,
         Wynk: 0,
         JioSaavn: 0,
         Amazon: 0,
@@ -610,6 +623,7 @@ const userAnalyticsReportAdder = async (req, res) => {
       },
       Nov: {
         Spotify: 0,
+        "Apple Music": 0,
         Wynk: 0,
         JioSaavn: 0,
         Amazon: 0,
@@ -623,6 +637,7 @@ const userAnalyticsReportAdder = async (req, res) => {
       },
       Dec: {
         Spotify: 0,
+        "Apple Music": 0,
         Wynk: 0,
         JioSaavn: 0,
         Amazon: 0,
@@ -847,6 +862,7 @@ const verifyForgotPassOtp = async (req, res) => {
 
 const editProfile = async (req, res) => {
   const { userId, name, phone, channelUrl, userPic } = req.body;
+
   let user;
   if (!req.files) {
     return res.status(400).json({ message: "Please upload files!" });
@@ -862,15 +878,12 @@ const editProfile = async (req, res) => {
   if (!req.files) {
     return res.status(400).json({ message: "Please upload files!" });
   }
-  const imgPathArr = user.userPic.split("/");
-  const targetImg = "rivaaz-films" + "/" + imgPathArr[imgPathArr.length - 1];
-  cloudinary.v2.api
-    .delete_resources([targetImg.split(".")[0]], {
-      type: "upload",
-      resource_type: "image",
-    })
-    .then(console.log);
+  if (!req.files.userPic[0]) {
+    return res.status(400).json({ message: "Please upload files!" });
+  }
+  fs.unlink(user.userPic, (err) => {});
   const img = req.files.userPic[0];
+
   user.name = name;
   user.phone = phone;
   user.channelUrl = channelUrl;
@@ -878,6 +891,7 @@ const editProfile = async (req, res) => {
   try {
     await user.save();
   } catch (error) {
+    fs.unlink(img, (err) => {});
     return res.status(400).json({ message: "Something went wrong!" });
   }
   return res.status(200).json({ message: "Profile Updated." });

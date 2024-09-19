@@ -1,17 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const authController = require("../controller/authController");
-const ImgUpload = require("../middleware/ImgUpload");
+const fileUpload = require("../middleware/fileUpload");
 
 router.post(
   "/signup",
-  ImgUpload.fields([
-    {
-      name: "sign",
-    },
-    {
-      name: "userPic",
-    },
+  fileUpload.fields([
+    { name: "userPic", maxCount: 1 },
+    { name: "sign", maxCount: 1 },
   ]),
   authController.userRegistration
 );
@@ -29,16 +25,11 @@ router.post("/verify-otp", authController.verifyOtp);
 router.post("/paid-earning", authController.addPaidEarning);
 router.post("/edit-paid", authController.editPaid);
 router.post("/send-email", authController.sendEmailForOtp);
+
 router.post(
   "/edit-profile",
-  ImgUpload.fields([
-    {
-      name: "sign",
-    },
-    {
-      name: "userPic",
-    },
-  ]),
+  fileUpload.fields([{ name: "userPic", maxCount: 1 }]),
   authController.editProfile
 );
+
 module.exports = router;

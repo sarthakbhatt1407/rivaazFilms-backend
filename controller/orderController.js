@@ -114,8 +114,16 @@ const orderCreator = async (req, res) => {
   if (!req.files) {
     return res.status(400).json({ message: "Please upload files!" });
   }
+  if (!req.files.file[0]) {
+    return res.status(400).json({ message: "Please upload file!" });
+  }
+  if (!req.files.thumbnail[0]) {
+    return res.status(400).json({ message: "Please upload thumbnail!" });
+  }
 
   const file = req.files.file[0];
+  const image = req.files.thumbnail[0];
+  console.log(image, file);
 
   const dateAndTime = dateFetcher();
   const createdOrder = new Order({
@@ -127,6 +135,7 @@ const orderCreator = async (req, res) => {
     userId,
     thumbnail: "",
     file: file.path,
+    thumbnail: image.path,
     mood,
     description,
     singer,
@@ -166,15 +175,18 @@ const orderCreator = async (req, res) => {
   } catch (error) {
     console.log(error);
     fs.unlink(file.path, (err) => {});
+    fs.unlink(image.path, (err) => {});
 
     return res.status(400).json({ message: "Unable to create order" });
   }
+  console.log(createdOrder);
+
   return res.status(200).json({ message: "Order created", createdOrder });
 };
 
 const addImage = async (req, res) => {
   const { orderId } = req.body;
-  console.log(req.files);
+
   let order;
   try {
     order = await Order.findById(orderId);
@@ -191,17 +203,6 @@ const addImage = async (req, res) => {
   }
 
   const img = req.files[0];
-  if (order.thumbnail.trim().length > 0) {
-    const imgPathArr = order.thumbnail.split("/");
-    const targetImg = "rivaaz-films" + "/" + imgPathArr[imgPathArr.length - 1];
-
-    cloudinary.v2.api
-      .delete_resources([targetImg.split(".")[0]], {
-        type: "upload",
-        resource_type: "image",
-      })
-      .then(console.log);
-  }
 
   order.thumbnail = img.path;
   try {
@@ -311,16 +312,8 @@ const editOrderById = async (req, res) => {
 
   if (action === "delete") {
     order.deleted = true;
-    const imgPathArr = order.thumbnail.split("/");
-    const targetImg = "rivaaz-films" + "/" + imgPathArr[imgPathArr.length - 1];
-
-    cloudinary.v2.api
-      .delete_resources([targetImg.split(".")[0]], {
-        type: "upload",
-        resource_type: "image",
-      })
-      .then(console.log);
     fs.unlink(order.file, (err) => {});
+    fs.unlink(order.thumbnail, (err) => {});
   }
   if (action === "restore") {
     order.deleted = false;
@@ -366,15 +359,23 @@ const editOrderById = async (req, res) => {
     }
   }
 
-  let file;
+  let file, thumbnail;
   if (action === "edit") {
     if (!req.files) {
       return res.status(400).json({ message: "Please upload files!" });
     }
+    if (!req.files.file[0]) {
+      return res.status(400).json({ message: "Please upload file!" });
+    }
+    if (!req.files.thumbnail[0]) {
+      return res.status(400).json({ message: "Please upload thumbnail!" });
+    }
 
     const file = req.files.file[0];
+    const thumbnail = req.files.thumbnail[0];
 
     fs.unlink(order.file, (err) => {});
+    fs.unlink(order.thumbnail, (err) => {});
 
     order.labelName = labelName;
     order.title = title;
@@ -397,6 +398,7 @@ const editOrderById = async (req, res) => {
     order.musicDirector = musicDirector;
 
     order.file = file.path;
+    order.thumbnail = thumbnail.path;
     order.singerAppleId = singerAppleId;
     order.singerSpotifyId = singerSpotifyId;
     order.singerFacebookUrl = singerFacebookUrl;
@@ -413,7 +415,7 @@ const editOrderById = async (req, res) => {
     order.subLabel2 = subLabel2;
     order.subLabel3 = subLabel3;
     order.remark = "";
-    console.log(admin);
+
     if (!admin) {
       order.status = "waiting";
     }
@@ -424,9 +426,9 @@ const editOrderById = async (req, res) => {
   } catch (error) {
     console.log(error);
     fs.unlink(file.path, (err) => {});
-    return res.status(404).json({ message: "unable to update order" });
+    return res.status(404).json({ message: "Unable to update order" });
   }
-  return res.status(200).json({ message: "order updated successfully", order });
+  return res.status(200).json({ message: "Order updated successfully", order });
 };
 
 const getAllOrders = async (req, res) => {
