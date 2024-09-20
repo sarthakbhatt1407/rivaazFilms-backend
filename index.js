@@ -4,12 +4,13 @@ const express = require("express");
 const app = express();
 const path = require("path");
 const mongoose = require("mongoose");
+const cors = require('cors');
 const dotenv = require("dotenv");
 dotenv.config();
 const PORT = process.env.PORT || 3000;
 
 // imports
-const corsPolicy = require("./middleware/CORS");
+//const corsPolicy = require("./middleware/CORS");
 const authenticationRoute = require("./routes/authentication");
 const orders = require("./routes/orders");
 const fileRoute = require("./routes/file");
@@ -17,9 +18,13 @@ const copyrightRoute = require("./routes/copyright");
 const querytRoute = require("./routes/query");
 
 //  CORS
-app.use(corsPolicy);
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+const corsOptions = {
+    origin: '*', 
+};
+app.use(cors(corsOptions));
+//app.use(corsPolicy);
+app.use(express.json({limit: '1000mb' }));
+app.use(express.urlencoded({ limit: '1000mb' ,extended: false }));
 
 // file serving
 // Absolute paths for the directories
