@@ -18,6 +18,7 @@ router.post("/add-report", authController.userAnalyticsReportAdder);
 router.post("/add-financial-report", authController.userFinancialReportAdder);
 router.post("/user-bank-detail", authController.userBankDetails);
 router.get("/get-all-user", authController.getAllUsersDetails);
+router.get("/get-pending-user", authController.getAllPendingProfile);
 router.post("/forgot-verify-otp", authController.verifyForgotPassOtp);
 router.post("/forgot-send-email", authController.forgotPassOtpSender);
 router.post("/reset-password", authController.passwordReseter);
@@ -25,6 +26,11 @@ router.post("/verify-otp", authController.verifyOtp);
 router.post("/paid-earning", authController.addPaidEarning);
 router.post("/edit-paid", authController.editPaid);
 router.post("/send-email", authController.sendEmailForOtp);
+router.post(
+  "/legal-doc",
+  fileUpload.fields([{ name: "doc", maxCount: 1 }]),
+  authController.addLegalDoc
+);
 
 router.post(
   "/edit-profile",

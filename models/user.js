@@ -7,6 +7,9 @@ const userSchema = mongoose.Schema({
   finacialReport: { type: Array, required: true },
   analytics: { type: Array, required: true },
   city: { type: String, required: true },
+  address: { type: String, required: true },
+  pincode: { type: String, required: true },
+  status: { type: String, required: true },
   state: { type: String, required: true },
   country: { type: String, required: true },
   password: { type: String, required: true },
@@ -16,6 +19,8 @@ const userSchema = mongoose.Schema({
   channelUrl: { type: String, required: true },
   sign: { type: String, required: true },
   userPic: { type: String, required: true },
+  docs: { type: String },
+  excelRep: { type: String },
   paidEarning: { type: Number, required: true },
 });
 

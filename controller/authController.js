@@ -42,8 +42,18 @@ const validateEmail = (email) => {
 };
 
 const userRegistration = async (req, res, next) => {
-  const { name, email, password, phone, city, state, country, channelUrl } =
-    req.body;
+  const {
+    name,
+    email,
+    password,
+    phone,
+    city,
+    state,
+    country,
+    channelUrl,
+    address,
+    pincode,
+  } = req.body;
 
   //
   const date = new Date();
@@ -279,6 +289,11 @@ const userRegistration = async (req, res, next) => {
           upi: "",
         },
       ],
+      status: "pending",
+      address,
+      pincode,
+      docs: "",
+      excelRep: "",
     });
     if (!validateEmail(email)) {
       return res.status(404).json({ message: "Invalid Email" });
@@ -746,6 +761,35 @@ const userBankDetails = async (req, res) => {
   return res.status(200).json({ message: "Bank details added.", user });
 };
 
+exports.getAllPendingProfile = async (req, res) => {
+  const { id } = req.query;
+  let admin, users;
+  try {
+    admin = await User.findById(id);
+    if (!admin) {
+      throw new Error("No user found!");
+    }
+    if (!admin.isAdmin) {
+      throw new Error("You are not allowed!");
+    }
+  } catch (error) {
+    return res.status(404).json({ message: "You are not allowed!" });
+  }
+  try {
+    users = await User.find({ status: "pending" });
+    if (!users) {
+      throw new Error("No users found!");
+    }
+  } catch (error) {
+    return res.status(404).json({ message: "No users found!" });
+  }
+
+  return res.status(200).json({
+    users: users.map((usr) => {
+      return usr.toObject({ getters: true });
+    }),
+  });
+};
 const getAllUsersDetails = async (req, res) => {
   const { id } = req.query;
   let admin, users;
@@ -947,6 +991,37 @@ const editPaid = async (req, res) => {
     return res.status(400).json({ message: "Something went wrong!" });
   }
   return res.status(200).json({ message: "Earnings Updated." });
+};
+
+exports.addLegalDoc = async (req, res) => {
+  const { userId, adminId } = req.body;
+
+  let user, admin;
+  try {
+    admin = await User.findById(adminId);
+    if (!admin.isAdmin) {
+      return res.status(400).json({ message: "You are not allowed!" });
+    }
+    user = await User.findById(userId);
+    if (!user) {
+      throw new Error();
+    }
+  } catch (error) {
+    return res.status(404).json({ message: "User not found!" });
+  }
+  if (!req.files) {
+    return res.status(400).json({ message: "Please upload files!" });
+  }
+  user.docs = req.files.doc[0].path;
+  user.status = "approved";
+  try {
+    await user.save();
+  } catch (error) {
+    return res.status(400).json({ message: "Something went wrong !" });
+  }
+  return res
+    .status(200)
+    .json({ message: "Document uploaded successfully.", success: true });
 };
 
 exports.userRegistration = userRegistration;

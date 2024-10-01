@@ -3,7 +3,7 @@ const path = require("path");
 const fs = require("fs");
 const { v4: uuidv4 } = require("uuid");
 
-// Define paths for image and audio uploads
+// Define paths for image, audio, documents, and reports uploads
 const imageUploadDirectory = path.join("uploads/images");
 const audioUploadDirectory = path.join("uploads/audios");
 const documentsUploadDirectory = path.join("uploads/documents");
@@ -13,6 +13,9 @@ const reportsUploadDirectory = path.join("uploads/reports");
 if (!fs.existsSync(imageUploadDirectory)) {
   fs.mkdirSync(imageUploadDirectory, { recursive: true });
 }
+if (!fs.existsSync(audioUploadDirectory)) {
+  fs.mkdirSync(audioUploadDirectory, { recursive: true });
+}
 if (!fs.existsSync(documentsUploadDirectory)) {
   fs.mkdirSync(documentsUploadDirectory, { recursive: true });
 }
@@ -20,13 +23,7 @@ if (!fs.existsSync(reportsUploadDirectory)) {
   fs.mkdirSync(reportsUploadDirectory, { recursive: true });
 }
 
-if (!fs.existsSync(audioUploadDirectory)) {
-  fs.mkdirSync(audioUploadDirectory, { recursive: true });
-}
-
-// Log the directories to verify paths
-
-// Multer storage configuration for both images and audios
+// Multer storage configuration for images, audios, and documents
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     if (file.fieldname === "file") {
@@ -39,6 +36,9 @@ const storage = multer.diskStorage({
     ) {
       // Save image files in "uploads/images" directory
       cb(null, imageUploadDirectory);
+    } else if (file.fieldname === "doc") {
+      // Save document files (e.g., PDFs) in "uploads/documents" directory
+      cb(null, documentsUploadDirectory);
     }
   },
   filename: function (req, file, cb) {
@@ -53,15 +53,16 @@ const storage = multer.diskStorage({
       file.fieldname === "sign"
     ) {
       cb(null, "image_" + uniqueSuffix + extension);
+    } else if (file.fieldname === "doc") {
+      cb(null, "document_" + uniqueSuffix + extension);
     }
   },
 });
 
-// Check for valid file types (audio and image)
+// Check for valid file types (audio, image, and PDF)
 function checkFileType(file, cb) {
   const filetypes =
-    /wav|mp3|mpeg|ogg|aac|flac|alac|wma|aiff|mp4|webm|x-msvideo|x-ms-wmv|x-flv|quicktime|png|jpeg|jpg/;
-
+    /wav|mp3|mpeg|ogg|aac|flac|alac|wma|aiff|mp4|webm|x-msvideo|x-ms-wmv|x-flv|quicktime|png|jpeg|jpg|pdf/;
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
   const mimetype = filetypes.test(file.mimetype);
 
@@ -69,7 +70,7 @@ function checkFileType(file, cb) {
     return cb(null, true);
   } else {
     return cb(
-      "Error: Invalid file type! Only audio and image files are allowed."
+      "Error: Invalid file type! Only audio, image, and PDF files are allowed."
     );
   }
 }
