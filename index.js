@@ -4,7 +4,7 @@ const express = require("express");
 const app = express();
 const path = require("path");
 const mongoose = require("mongoose");
-const cors = require('cors');
+const cors = require("cors");
 const dotenv = require("dotenv");
 dotenv.config();
 const PORT = process.env.PORT || 3000;
@@ -16,15 +16,16 @@ const orders = require("./routes/orders");
 const fileRoute = require("./routes/file");
 const copyrightRoute = require("./routes/copyright");
 const querytRoute = require("./routes/query");
+const notificationRoute = require("./routes/notification");
 
 //  CORS
 const corsOptions = {
-    origin: '*', 
+  origin: "*",
 };
 app.use(cors(corsOptions));
 //app.use(corsPolicy);
-app.use(express.json({limit: '1000mb' }));
-app.use(express.urlencoded({ limit: '1000mb' ,extended: false }));
+app.use(express.json({ limit: "1000mb" }));
+app.use(express.urlencoded({ limit: "1000mb", extended: false }));
 
 // file serving
 // Absolute paths for the directories
@@ -53,6 +54,7 @@ app.use("/order", orders);
 app.use("/file", fileRoute);
 app.use("/copyright", copyrightRoute);
 app.use("/query", querytRoute);
+app.use("/notification", notificationRoute);
 
 app.use("/", (req, res) => {
   res.send("<h1>App is succesfully live on server.</h1>");
