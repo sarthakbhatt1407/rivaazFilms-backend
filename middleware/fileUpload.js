@@ -39,6 +39,8 @@ const storage = multer.diskStorage({
     } else if (file.fieldname === "doc") {
       // Save document files (e.g., PDFs) in "uploads/documents" directory
       cb(null, documentsUploadDirectory);
+    } else if (file.fieldname === "excel") {
+      cb(null, reportsUploadDirectory);
     }
   },
   filename: function (req, file, cb) {
@@ -55,22 +57,32 @@ const storage = multer.diskStorage({
       cb(null, "image_" + uniqueSuffix + extension);
     } else if (file.fieldname === "doc") {
       cb(null, "document_" + uniqueSuffix + extension);
+    } else if (file.fieldname === "excel") {
+      cb(null, file.originalname);
     }
   },
 });
 
 // Check for valid file types (audio, image, and PDF)
 function checkFileType(file, cb) {
+  // Updated file types including Excel formats
   const filetypes =
-    /wav|mp3|mpeg|ogg|aac|flac|alac|wma|aiff|mp4|webm|x-msvideo|x-ms-wmv|x-flv|quicktime|png|jpeg|jpg|pdf/;
-  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = filetypes.test(file.mimetype);
+    /wav|mp3|mpeg|ogg|aac|flac|alac|wma|aiff|mp4|webm|x-msvideo|x-ms-wmv|x-flv|quicktime|png|jpeg|jpg|pdf|xls|xlsx/;
 
+  // Check file extension
+  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+
+  // Check MIME type
+  const mimetypes =
+    /audio\/|image\/|application\/pdf|application\/vnd.ms-excel|application\/vnd.openxmlformats-officedocument.spreadsheetml.sheet/;
+  const mimetype = mimetypes.test(file.mimetype);
+
+  // Validate both MIME type and extension
   if (mimetype && extname) {
-    return cb(null, true);
+    return cb(null, true); // File type is valid
   } else {
     return cb(
-      "Error: Invalid file type! Only audio, image, and PDF files are allowed."
+      "Error: Invalid file type! Only audio, image, PDF, and Excel files are allowed."
     );
   }
 }

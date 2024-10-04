@@ -42,6 +42,9 @@ const orderSchema = mongoose.Schema({
   lyricistSpotifyId: { type: String },
   lyricistFacebookUrl: { type: String },
   lyricistInstagramUrl: { type: String },
+  dateLive: { type: String, required: true },
+  releaseDate: { type: String },
+  subgenre: { type: String },
 });
 
 module.exports = mongoose.model("Order", orderSchema);

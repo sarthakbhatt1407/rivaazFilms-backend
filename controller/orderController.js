@@ -110,6 +110,8 @@ const orderCreator = async (req, res) => {
     lyricistFacebookUrl,
     lyricistInstagramUrl,
     musicDirector,
+    releaseDate,
+    subgenre,
   } = req.body;
   if (!req.files) {
     return res.status(400).json({ message: "Please upload files!" });
@@ -123,7 +125,6 @@ const orderCreator = async (req, res) => {
 
   const file = req.files.file[0];
   const image = req.files.thumbnail[0];
-  console.log(image, file);
 
   const dateAndTime = dateFetcher();
   const createdOrder = new Order({
@@ -169,7 +170,12 @@ const orderCreator = async (req, res) => {
     lyricistSpotifyId,
     lyricistFacebookUrl,
     lyricistInstagramUrl,
+    dateLive: " ",
+    releaseDate,
+    subgenre,
   });
+  console.log(createdOrder);
+
   try {
     await createdOrder.save();
   } catch (error) {
@@ -296,6 +302,8 @@ const editOrderById = async (req, res) => {
     lyricistFacebookUrl,
     lyricistInstagramUrl,
     admin,
+    releaseDate,
+    subgenre,
   } = req.body;
 
   let order, user;
@@ -415,7 +423,10 @@ const editOrderById = async (req, res) => {
     order.subLabel2 = subLabel2;
     order.subLabel3 = subLabel3;
     order.remark = "";
-
+    if (releaseDate && releaseDate.length > 0) {
+      order.releaseDate = releaseDate;
+    }
+    order.subgenre = subgenre;
     if (!admin) {
       order.status = "waiting";
     }
@@ -466,6 +477,7 @@ const getAllOrders = async (req, res) => {
 
 const addUPCISRT = async (req, res) => {
   const { id, upc, isrc, adminId } = req.body;
+  const dateAndTime = dateFetcher();
 
   let admin;
   try {
@@ -488,10 +500,12 @@ const addUPCISRT = async (req, res) => {
   order.upc = upc;
   order.isrc = isrc;
   order.status = "completed";
+  order.dateLive = dateAndTime.split("/")[0];
   try {
     order.markModified("upc");
     order.markModified("isrc");
     order.markModified("status");
+    order.markModified("dateLive");
     await order.save();
   } catch (error) {
     return res.status(400).json({ message: "Something went wrong" });

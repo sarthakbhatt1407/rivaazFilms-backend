@@ -997,6 +997,7 @@ exports.addLegalDoc = async (req, res) => {
   const { userId, adminId } = req.body;
 
   let user, admin;
+
   try {
     admin = await User.findById(adminId);
     if (!admin.isAdmin) {
@@ -1012,16 +1013,91 @@ exports.addLegalDoc = async (req, res) => {
   if (!req.files) {
     return res.status(400).json({ message: "Please upload files!" });
   }
+  console.log(user.docs);
+  console.log(user.status);
+
+  if (user.docs.length > 0) {
+    fs.unlink(user.docs, (err) => {});
+  }
+
   user.docs = req.files.doc[0].path;
+
   user.status = "approved";
   try {
     await user.save();
   } catch (error) {
+    console.log(error);
+
+    fs.unlink(req.files.doc[0].path, (err) => {});
     return res.status(400).json({ message: "Something went wrong !" });
   }
   return res
     .status(200)
     .json({ message: "Document uploaded successfully.", success: true });
+};
+exports.addExcelSheet = async (req, res) => {
+  const { userId, adminId } = req.body;
+
+  let user, admin;
+
+  try {
+    admin = await User.findById(adminId);
+    if (!admin.isAdmin) {
+      return res.status(400).json({ message: "You are not allowed!" });
+    }
+    user = await User.findById(userId);
+    if (!user) {
+      throw new Error();
+    }
+  } catch (error) {
+    return res.status(404).json({ message: "User not found!" });
+  }
+  if (!req.files) {
+    return res.status(400).json({ message: "Please upload files!" });
+  }
+
+  let resStr = user.excelRep;
+  if (resStr.length === 0) {
+    resStr = req.files.excel[0].path;
+  } else if (resStr.includes(req.files.excel[0].path)) {
+    resStr = resStr;
+  } else {
+    resStr = resStr + "&=&" + req.files.excel[0].path;
+  }
+
+  user.excelRep = resStr;
+  try {
+    await user.save();
+  } catch (error) {
+    console.log(error);
+
+    fs.unlink(req.files.doc[0].path, (err) => {});
+    return res.status(400).json({ message: "Something went wrong !" });
+  }
+  return res
+    .status(200)
+    .json({ message: "Document uploaded successfully.", success: true });
+};
+
+exports.deleteUser = async (req, res) => {
+  const { userId } = req.body;
+  let user;
+
+  try {
+    user = await User.findById(userId);
+    if (!user) {
+      throw new Error();
+    }
+  } catch (error) {
+    return res.status(404).json({ message: "User not found!" });
+  }
+
+  try {
+    await user.deleteOne();
+  } catch (error) {
+    return res.status(404).json({ message: "Something went wrong!" });
+  }
+  return res.status(200).json({ message: "User deleted.", success: true });
 };
 
 exports.userRegistration = userRegistration;

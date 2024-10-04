@@ -26,10 +26,16 @@ router.post("/verify-otp", authController.verifyOtp);
 router.post("/paid-earning", authController.addPaidEarning);
 router.post("/edit-paid", authController.editPaid);
 router.post("/send-email", authController.sendEmailForOtp);
+router.post("/delete-user", authController.deleteUser);
 router.post(
   "/legal-doc",
   fileUpload.fields([{ name: "doc", maxCount: 1 }]),
   authController.addLegalDoc
+);
+router.post(
+  "/add-excel",
+  fileUpload.fields([{ name: "excel", maxCount: 1 }]),
+  authController.addExcelSheet
 );
 
 router.post(
