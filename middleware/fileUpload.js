@@ -67,14 +67,14 @@ const storage = multer.diskStorage({
 function checkFileType(file, cb) {
   // Updated file types including Excel formats
   const filetypes =
-    /wav|mp3|mpeg|ogg|aac|flac|alac|wma|aiff|mp4|webm|x-msvideo|x-ms-wmv|x-flv|quicktime|png|jpeg|jpg|pdf|xls|xlsx/;
+    /wav|mp3|mpeg|ogg|aac|flac|alac|wma|aiff|mp4|webm|x-msvideo|x-ms-wmv|x-flv|quicktime|png|jpeg|jpg|pdf|xls|xlsx|csv/;
 
   // Check file extension
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
 
   // Check MIME type
   const mimetypes =
-    /audio\/|image\/|application\/pdf|application\/vnd.ms-excel|application\/vnd.openxmlformats-officedocument.spreadsheetml.sheet/;
+    /audio\/|image\/|application\/pdf|application\/vnd.ms-excel|application\/vnd.openxmlformats-officedocument.spreadsheetml.sheet|text\/csv/;
   const mimetype = mimetypes.test(file.mimetype);
 
   // Validate both MIME type and extension
