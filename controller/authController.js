@@ -1013,8 +1013,6 @@ exports.addLegalDoc = async (req, res) => {
   if (!req.files) {
     return res.status(400).json({ message: "Please upload files!" });
   }
-  console.log(user.docs);
-  console.log(user.status);
 
   if (user.docs.length > 0) {
     fs.unlink(user.docs, (err) => {});
@@ -1098,6 +1096,34 @@ exports.deleteUser = async (req, res) => {
     return res.status(404).json({ message: "Something went wrong!" });
   }
   return res.status(200).json({ message: "User deleted.", success: true });
+};
+
+exports.deleteExcelFile = async (req, res) => {
+  const { userId, filePath } = req.body;
+
+  let user;
+  try {
+    user = await User.findById(userId);
+    if (!user) {
+      throw new Error();
+    }
+  } catch (error) {
+    return res.status(404).json({ message: "User not found!", error });
+  }
+  fs.unlink(filePath, (err) => {});
+  const arr = user.excelRep.split("&=&");
+  const resArr = arr.filter((f) => {
+    return f != filePath;
+  });
+  const resStr = resArr.join("&=&");
+  user.excelRep = resStr;
+  try {
+    await user.save();
+    fs.unlink(filePath, (err) => {});
+  } catch (error) {
+    return res.status(404).json({ message: "Something went wrong!" });
+  }
+  return res.status(200).json({ message: "File deleted.", success: true });
 };
 
 exports.userRegistration = userRegistration;

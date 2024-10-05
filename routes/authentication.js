@@ -27,6 +27,7 @@ router.post("/paid-earning", authController.addPaidEarning);
 router.post("/edit-paid", authController.editPaid);
 router.post("/send-email", authController.sendEmailForOtp);
 router.post("/delete-user", authController.deleteUser);
+router.post("/excel-delete", authController.deleteExcelFile);
 router.post(
   "/legal-doc",
   fileUpload.fields([{ name: "doc", maxCount: 1 }]),
