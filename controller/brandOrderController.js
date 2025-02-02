@@ -9,6 +9,8 @@ exports.createNewOrder = async (req, res) => {
     campaignDescription,
     selectedInfluencers,
     infIdArr,
+    campaignUrl,
+    userId,
   } = req.body;
   const InfIdArrParsed = JSON.parse(infIdArr);
   let createdOrder;
@@ -43,8 +45,14 @@ exports.createNewOrder = async (req, res) => {
       campaignDescription,
       video: videoPath,
       images: imagePaths,
+      campaignUrl,
+      userId,
+      paymentStatus: "pending",
+      paymentOrderId: "",
       selectedInfluencers: JSON.parse(selectedInfluencers),
       audio: audioPath,
+      status: "pending",
+      paymentAmount: "",
     });
 
     InfIdArrParsed.forEach(async (id) => {
@@ -56,6 +64,9 @@ exports.createNewOrder = async (req, res) => {
           infId: id,
           images: imagePaths,
           brandOrderId: createdOrder._id,
+          status: "pending",
+          workLink: "",
+          remark: "",
         });
         await cretedNewInfOrder.save();
       } catch (error) {
@@ -74,4 +85,78 @@ exports.createNewOrder = async (req, res) => {
   return res
     .status(201)
     .json({ message: "New order created successfully", createdOrder });
+};
+
+exports.getOrdersByUserID = async (req, res) => {
+  const id = req.body.id;
+  console.log(id);
+
+  let orders = [];
+
+  try {
+    orders = await BrandOrder.find({ userId: id });
+
+    if (orders.length == 0) {
+      return res.status(404).json({ message: "No orders found." });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: "Something went wrong." });
+  }
+  return res.status(200).json({
+    orders: orders.map((ord) => {
+      return ord.toObject({ getters: true });
+    }),
+  });
+};
+
+exports.getOrderById = async (req, res) => {
+  const { orderId } = req.body; // Get orderId from request parameters
+  let infOrders = [];
+  try {
+    const order = await BrandOrder.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found." });
+    }
+    infOrders = await InfOrder.find({ brandOrderId: orderId });
+    return res.status(200).json({
+      order: order.toObject({ getters: true }),
+      infOrders: infOrders.map((ord) => {
+        return ord.toObject({ getters: true });
+      }),
+    });
+  } catch (error) {
+    console.error("Error fetching order:", error);
+    return res.status(500).json({ message: "Something went wrong." });
+  }
+};
+
+exports.updatePaymentOrderId = async (req, res) => {
+  const { orderId, paymentOrderId } = req.body; // Get orderId and paymentOrderId from request body
+
+  if (!orderId || !paymentOrderId) {
+    return res
+      .status(400)
+      .json({ message: "Order ID and Payment Order ID are required." });
+  }
+
+  try {
+    const order = await BrandOrder.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found." });
+    }
+
+    // Update the paymentOrderId
+    order.paymentOrderId = paymentOrderId;
+    await order.save();
+
+    return res.status(200).json({
+      message: "Payment Order ID updated successfully.",
+      updatedOrder: order.toObject({ getters: true }),
+    });
+  } catch (error) {
+    console.error("Error updating paymentOrderId:", error);
+    return res.status(500).json({ message: "Something went wrong." });
+  }
 };

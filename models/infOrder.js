@@ -5,9 +5,10 @@ const InfOrderSchema = mongoose.Schema({
   campaignName: { type: String, required: true },
   campaignDescription: { type: String, required: true },
   infId: { type: String, required: true },
-
+  status: { type: String, required: true },
+  workLink: { type: String },
+  remark: { type: String },
   images: { type: String, required: true },
-
   brandOrderId: { type: String, required: true },
 });
 

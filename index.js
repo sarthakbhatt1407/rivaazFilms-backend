@@ -19,7 +19,7 @@ const fileRoute = require("./routes/file");
 const copyrightRoute = require("./routes/copyright");
 const querytRoute = require("./routes/query");
 const notificationRoute = require("./routes/notification");
-
+const paymentRoute = require("./routes/payment");
 //  CORS
 const corsOptions = {
   origin: "*",
@@ -35,12 +35,14 @@ const imageUploadDirectory = path.join("uploads/images");
 const audioUploadDirectory = path.join("uploads/audios");
 const documentUploadDirectory = path.join("uploads/documents");
 const reportUploadDirectory = path.join("uploads/reports");
+const videoUploadDirectory = path.join("uploads/videos");
 
 // Serve static files
 app.use("/uploads/images", express.static(imageUploadDirectory));
 app.use("/uploads/audios", express.static(audioUploadDirectory));
 app.use("/uploads/documents", express.static(documentUploadDirectory));
 app.use("/uploads/reports", express.static(reportUploadDirectory));
+app.use("/uploads/videos", express.static(videoUploadDirectory));
 
 // Routes
 app.use(
@@ -59,6 +61,7 @@ app.use("/file", fileRoute);
 app.use("/copyright", copyrightRoute);
 app.use("/query", querytRoute);
 app.use("/notification", notificationRoute);
+app.use("/payment", paymentRoute);
 
 app.use("/", (req, res) => {
   res.send("<h1>App is succesfully live on server.</h1>");

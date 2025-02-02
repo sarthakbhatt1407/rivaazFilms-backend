@@ -22,5 +22,17 @@ router.post(
   ]),
   brandOrderController.createNewOrder // The controller to handle the request
 );
+router.post(
+  "/get-order-by-user-id",
+  brandOrderController.getOrdersByUserID // The controller to handle the request
+);
+router.post(
+  "/get-order-by-id",
+  brandOrderController.getOrderById // The controller to handle the request
+);
+router.post(
+  "/update-payment-id",
+  brandOrderController.updatePaymentOrderId // The controller to handle the request
+);
 
 module.exports = router;
