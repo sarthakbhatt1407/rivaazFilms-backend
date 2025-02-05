@@ -5,6 +5,7 @@ const brandAndInfUserController = require("../controller/brandAndInfUserControll
 router.post("/check-user", brandAndInfUserController.userExists);
 router.post("/register", brandAndInfUserController.userRegistration);
 router.post("/login", brandAndInfUserController.userLogin);
-
+router.post("/chat", brandAndInfUserController.brandAndAdminChat);
+router.post("/get-chats", brandAndInfUserController.getBrandAndAdminChat);
 
 module.exports = router;
