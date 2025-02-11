@@ -34,5 +34,21 @@ router.post(
   "/update-payment-id",
   brandOrderController.updatePaymentOrderId // The controller to handle the request
 );
+router.post(
+  "/get-all-orders",
+  brandOrderController.getAllOrders // The controller to handle the request
+);
+router.post(
+  "/update-payment-amount",
+  brandOrderController.updateOrderPaymentAmount // The controller to handle the request
+);
+router.post(
+  "/delete-inf-order",
+  brandOrderController.deleteInfFromOrder // The controller to handle the request
+);
+router.post(
+  "/add-inf-order",
+  brandOrderController.addInfFromOrder // The controller to handle the request
+);
 
 module.exports = router;

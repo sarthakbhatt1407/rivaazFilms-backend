@@ -1,28 +1,15 @@
 const Razorpay = require("razorpay");
 const { RAZORPAY_ID_KEY, RAZORPAY_SECRET_KEY } = process.env;
 const BrandOrder = require("../models/brandOrder");
+const InfOrder = require("../models/infOrder");
+const brandUser = require("../models/prouser");
+const infUser = require("../models/infuser");
 
 const razorpayInstance = new Razorpay({
   key_id: RAZORPAY_ID_KEY,
   key_secret: RAZORPAY_SECRET_KEY,
 });
 
-// const paymentVerifier = async (req, res) => {
-//   const id = req.params.id;
-//   try {
-//     const pay = await razorpayInstance.payments.all({ count: 100 });
-//     const orderPaymentInfo = pay.items.find((item) => {
-//       return item.order_id === id;
-//     });
-//     if (orderPaymentInfo) {
-//       return res.status(200).json(orderPaymentInfo);
-//     } else {
-//       return res.status(200).json({ captured: false, id });
-//     }
-//   } catch (error) {
-//     // return res.status(400).json({ message: "No payment found", error });
-//   }
-// };
 const paymentVerifier = async (req, res) => {
   const orderId = req.params.id; // Razorpay Order ID
   console.log(orderId);
@@ -60,6 +47,34 @@ const paymentVerifier = async (req, res) => {
 
     // Find the BrandOrder using paymentOrderId
     const brandOrder = await BrandOrder.findOne({ paymentOrderId: orderId });
+
+    if (updatedPaymentStatus === "completed") {
+      let idArr = brandOrder.selectedInfluencers.map(
+        (influencer) => influencer.id
+      );
+
+      idArr.forEach(async (id) => {
+        try {
+          const cretedNewInfOrder = await new InfOrder({
+            brandName: brandOrder.brandName,
+            campaignName: brandOrder.campaignName,
+            campaignDescription: brandOrder.campaignDescription,
+            infId: id,
+            images: brandOrder.images,
+            brandOrderId: brandOrder._id,
+            status: "pending",
+            workLink: "",
+            remark: "",
+          });
+          await cretedNewInfOrder.save();
+        } catch (error) {
+          console.log(error);
+          return res
+            .status(500)
+            .json({ message: "Failed to create new influencer order" });
+        }
+      });
+    }
 
     if (!brandOrder) {
       return res.status(404).json({ message: "Brand order not found." });
@@ -108,8 +123,62 @@ const createOrder = async (req, res) => {
     console.log(error);
   }
 };
+const paymentVerifierInf = async (req, res) => {
+  const orderId = req.params.id; // Razorpay Order ID
+
+  try {
+    // Fetch all payments related to this order ID
+    const payments = await razorpayInstance.payments.all({ count: 100 });
+
+    // Find the payment matching the order ID
+    const orderPayment = payments.items.find(
+      (payment) => payment.order_id === orderId
+    );
+
+    if (!orderPayment) {
+      return res
+        .status(404)
+        .json({ message: "No payment found for this order", orderId });
+    }
+
+    let updatedPaymentStatus = "failed";
+
+    // If payment is authorized, capture it
+    if (orderPayment.status === "authorized") {
+      const captureResponse = await razorpayInstance.payments.capture(
+        orderPayment.id, // Payment ID
+        orderPayment.amount, // Capture full amount
+        orderPayment.currency
+      );
+
+      updatedPaymentStatus = "completed";
+    }
+    if (orderPayment.status === "captured") {
+      updatedPaymentStatus = "completed";
+    }
+
+    // Find the BrandOrder using paymentOrderId
+    const user = await infUser.findOne({ paymentOrderId: orderId });
+
+    // Update the paymentStatus in the database
+    user.paymentStatus = updatedPaymentStatus;
+    user.status = "active";
+
+    await user.save();
+
+    return res.status(200).json({
+      message: `Payment verification completed. Status: ${updatedPaymentStatus}`,
+      paymentStatus: updatedPaymentStatus,
+      user,
+    });
+  } catch (error) {
+    console.error("Error verifying or capturing payment:", error);
+    return res.status(400).json({ message: "Error verifying payment", error });
+  }
+};
 
 module.exports = {
   createOrder,
   paymentVerifier,
+  paymentVerifierInf,
 };

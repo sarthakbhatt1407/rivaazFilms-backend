@@ -14,6 +14,7 @@ const PORT = process.env.PORT || 3000;
 const authenticationRoute = require("./routes/authentication");
 const userRoute = require("./routes/user");
 const brandroute = require("./routes/brand");
+const infroute = require("./routes/influencer");
 const orders = require("./routes/orders");
 const fileRoute = require("./routes/file");
 const copyrightRoute = require("./routes/copyright");
@@ -55,6 +56,7 @@ app.use(
 );
 app.use("/user", authenticationRoute);
 app.use("/brand", brandroute);
+app.use("/inf", infroute);
 app.use("/inf/user", userRoute);
 app.use("/order", orders);
 app.use("/file", fileRoute);
