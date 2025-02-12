@@ -7,6 +7,7 @@ const brandOrderSchema = mongoose.Schema({
   userId: { type: String, required: true },
   paymentStatus: { type: String, required: true },
   paymentOrderId: { type: String },
+  remark: { type: String },
   status: { type: String, required: true },
   paymentAmount: { type: Number },
   influencersAmount: { type: Number },

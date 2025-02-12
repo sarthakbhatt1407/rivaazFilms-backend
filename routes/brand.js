@@ -50,5 +50,25 @@ router.post(
   "/add-inf-order",
   brandOrderController.addInfFromOrder // The controller to handle the request
 );
+router.post(
+  "/get-brand-home-data",
+  brandOrderController.getBrandHomeData // The controller to handle the request
+);
+router.post(
+  "/get-inf-home-data",
+  brandOrderController.getInfHomeData // The controller to handle the request
+);
+router.post(
+  "/get-admin-home-data",
+  brandOrderController.getAdminHomeData // The controller to handle the request
+);
+router.post(
+  "/reject-order",
+  brandOrderController.rejectOrderFromAdmin // The controller to handle the request
+);
+router.post(
+  "/delete-order",
+  brandOrderController.deleteBrandOrder // The controller to handle the request
+);
 
 module.exports = router;

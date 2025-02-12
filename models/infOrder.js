@@ -6,6 +6,7 @@ const InfOrderSchema = mongoose.Schema({
   campaignDescription: { type: String, required: true },
   infId: { type: String, required: true },
   status: { type: String, required: true },
+  orderAmount: { type: String },
   workLink: { type: String },
   remark: { type: String },
   images: { type: String, required: true },

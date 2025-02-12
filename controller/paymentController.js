@@ -65,6 +65,9 @@ const paymentVerifier = async (req, res) => {
             status: "pending",
             workLink: "",
             remark: "",
+            orderAmount: brandOrder.selectedInfluencers.find((user) => {
+              return user.id === id;
+            }).price,
           });
           await cretedNewInfOrder.save();
         } catch (error) {

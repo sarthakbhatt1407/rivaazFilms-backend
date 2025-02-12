@@ -2,6 +2,8 @@ const BrandOrder = require("../models/brandOrder");
 const InfOrder = require("../models/infOrder");
 const brandUser = require("../models/prouser");
 const infUser = require("../models/infuser");
+const infOrder = require("../models/infOrder");
+const fs = require("fs");
 exports.createNewOrder = async (req, res) => {
   const {
     brandName,
@@ -56,6 +58,7 @@ exports.createNewOrder = async (req, res) => {
       status: "pending",
       paymentAmount: 0,
       influencersAmount,
+      remark: "",
     });
 
     // InfIdArrParsed.forEach(async (id) => {
@@ -272,6 +275,9 @@ exports.addInfFromOrder = async (req, res) => {
           status: "pending",
           workLink: "",
           remark: "",
+          orderAmount: selectedInfluencers.find((user) => {
+            return user.id === id;
+          }).price,
         });
         await cretedNewInfOrder.save();
       } catch (error) {
@@ -296,5 +302,160 @@ exports.addInfFromOrder = async (req, res) => {
   }
   return res.status(200).json({
     message: "Influencer added from order successfully.",
+  });
+};
+
+exports.getBrandHomeData = async (req, res) => {
+  const { id } = req.body;
+  let totalOrders, completedOrders, pendingOrders, inProcess, paidOrders;
+  try {
+    totalOrders = await BrandOrder.find({ userId: id });
+    completedOrders = await BrandOrder.find({
+      userId: id,
+      status: "completed",
+    });
+    pendingOrders = await BrandOrder.find({ userId: id, status: "pending" });
+    paidOrders = await BrandOrder.find({
+      userId: id,
+      paymentStatus: "completed",
+    });
+    inProcess = await BrandOrder.find({ userId: id, status: "in process" });
+  } catch (error) {
+    return res.status(500).json({ message: "Something went wrong." });
+  }
+  return res.status(200).json({
+    totalOrders: totalOrders.length,
+    completedOrders: completedOrders.length,
+    pendingOrders: pendingOrders.length,
+    paidOrders: paidOrders.reduce((acc, curr) => acc + curr.paymentAmount, 0),
+    inProcess: inProcess.length,
+  });
+};
+exports.getInfHomeData = async (req, res) => {
+  const { id } = req.body;
+  let totalOrders,
+    completedOrders,
+    pendingOrders,
+    inProcess,
+    paidOrders,
+    user,
+    price;
+
+  try {
+    totalOrders = await infOrder.find({ userId: id });
+    completedOrders = await infOrder.find({
+      infId: id,
+      status: "completed",
+    });
+
+    pendingOrders = await infOrder.find({ infId: id, status: "pending" });
+    paidOrders = await infOrder.find({
+      infId: id,
+      status: "completed",
+    });
+    inProcess = await infOrder.find({ infId: id, status: "in process" });
+  } catch (error) {
+    return res.status(500).json({ message: "Something went wrong." });
+  }
+  return res.status(200).json({
+    totalOrders: totalOrders.length,
+    completedOrders: completedOrders.length,
+    pendingOrders: pendingOrders.length,
+    paidOrders: paidOrders.reduce((acc, curr) => acc + curr.orderAmount, 0),
+    inProcess: inProcess.length,
+  });
+};
+exports.getAdminHomeData = async (req, res) => {
+  const { id } = req.body;
+  let totalOrders, completedOrders, pendingOrders, inProcess, paidOrders;
+
+  try {
+    totalOrders = await BrandOrder.find({});
+    completedOrders = await BrandOrder.find({
+      status: "completed",
+    });
+    totalOrders = totalOrders.filter((order) => order.status !== "rejected");
+    pendingOrders = await BrandOrder.find({ status: "pending" });
+    paidOrders = await BrandOrder.find({
+      status: "completed",
+    });
+    console.log(paidOrders);
+
+    inProcess = await BrandOrder.find({ status: "in process" });
+  } catch (error) {
+    return res.status(500).json({ message: "Something went wrong." });
+  }
+  return res.status(200).json({
+    totalOrders: totalOrders.length,
+    completedOrders: completedOrders.length,
+    pendingOrders: pendingOrders.length,
+    paidOrders: paidOrders.reduce((acc, curr) => acc + curr.paymentAmount, 0),
+    inProcess: inProcess.length,
+  });
+};
+
+exports.rejectOrderFromAdmin = async (req, res) => {
+  const { orderId, remark } = req.body; // Get orderId from request parameters
+  console.log(orderId);
+
+  try {
+    const order = await BrandOrder.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found." });
+    }
+    order.status = "rejected";
+    order.remark = remark;
+    try {
+      await order.save();
+    } catch (error) {
+      return res
+        .status(500)
+        .json({ message: "Failed to update payment amount" });
+    }
+    return res.status(200).json({
+      order: order.toObject({ getters: true }),
+      message: "Payment amount updated successfully.",
+    });
+  } catch (error) {
+    console.error("Error fetching order:", error);
+    return res.status(500).json({ message: "Something went wrong." });
+  }
+};
+
+exports.deleteBrandOrder = async (req, res) => {
+  const { orderId } = req.body;
+
+  try {
+    const order = await BrandOrder.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found." });
+    }
+    const imagesArr = order.images.split(", ");
+
+    imagesArr.forEach((image) => {
+      fs.unlink(image, (err) => {
+        if (err) {
+          console.error(`Failed to delete image`, err);
+        }
+      });
+    });
+
+    fs.unlink(order.video, (err) => {
+      if (err) {
+        console.error(`Failed to delete video`, err);
+      }
+    });
+    fs.unlink(order.audio, (err) => {
+      if (err) {
+        console.error(`Failed to delete audio`, err);
+      }
+    });
+    await order.deleteOne();
+  } catch (error) {
+    return res.status(500).json({ message: "Something went wrong." });
+  }
+  return res.status(200).json({
+    message: "Order deleted successfully.",
   });
 };
