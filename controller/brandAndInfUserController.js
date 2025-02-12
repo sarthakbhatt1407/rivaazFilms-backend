@@ -3,6 +3,19 @@ const infUser = require("../models/infuser");
 const fs = require("fs");
 const { v4: uuidv4 } = require("uuid");
 const jwt = require("jsonwebtoken");
+
+const nodemailer = require("nodemailer");
+const transporter = nodemailer.createTransport({
+  service: "Gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.SMPT_EMAIL,
+    pass: process.env.SMPT_PASS,
+  },
+});
+
 const months = [
   "January",
   "February",
@@ -153,12 +166,13 @@ exports.userRegistrationInf = async (req, res, next) => {
       bankName,
       profession,
       profileImage: userPicImg.path,
-      status: "closed",
+      status: "initial",
       paymentStatus: "pending",
-      paymentOrdrId: "",
+      paymentOrdrId: " ",
       price,
       city,
       state,
+      legalDoc: " ",
     });
 
     try {
@@ -483,4 +497,154 @@ exports.editInfUser = async (req, res) => {
     success: true,
     user: user.toObject({ getters: true }),
   });
+};
+
+exports.getAllUsers = async (req, res) => {
+  let users, brandUsers, infUsers;
+  try {
+    brandUsers = await brandUser.find({});
+    console.log(brandUsers);
+
+    if (!brandUsers) {
+      brandUsers = [];
+    }
+    infUsers = await infUser.find({});
+    if (!infUsers) {
+      infUsers = [];
+    }
+    users = brandUsers.concat(infUsers);
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Error fetching users", success: false });
+  }
+  return res.status(200).json({
+    users: users.map((u) => {
+      if (u.userType == "admin") {
+        return;
+      }
+
+      return u.toObject({ getters: true });
+    }),
+    status: true,
+  });
+};
+
+exports.editInfUserProfileStatus = async (req, res) => {
+  const { id, status } = req.body;
+
+  let user;
+  try {
+    user = await infUser.findById(id);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: "User not found!", success: false });
+    }
+
+    user.status = status;
+
+    await user.save();
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Error updating user", success: false });
+  }
+
+  return res.status(200).json({
+    message: "User updated successfully",
+    success: true,
+    user: user.toObject({ getters: true }),
+  });
+};
+exports.deleteUserBrandAndUser = async (req, res) => {
+  const { id } = req.body;
+
+  let user;
+  try {
+    user = await infUser.findById(id);
+
+    if (!user) {
+      user = await brandUser.findById(id);
+    }
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ message: "User not found!", success: false });
+    }
+    await user.deleteOne();
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Error deleting user", success: false });
+  }
+  return res.status(200).json({ message: "User Deleted", success: true });
+};
+
+exports.sentOtpForDelete = async (req, res) => {
+  const otp = Math.floor(100000 + Math.random() * 900000);
+  let info;
+  try {
+    info = await transporter.sendMail({
+      from: '"Rivaaz Films" inforivaazfilms@gmail.com', // sender address
+      to: `sarthakbhatt1407@gmail.com`, // list of receivers
+      subject: "Account Deletion Verification", // Subject line
+      text: `Your OTP is ${otp}`, // plain text body
+      html: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+        <p style="font-size: 16px;">Dear Admin,</p>
+        <p style="font-size: 16px;">You have requested to delete a account with Rivaaz Films. Please use the following OTP to verify your request:</p>
+        <div style="font-size: 24px; font-weight: bold; color: #4CAF50; text-align: center; margin: 20px 0;">${otp}</div>
+        <p style="font-size: 16px;">If you did not request this account deletion, please ignore this email.</p>
+        <p style="font-size: 16px;">Best regards,</p>
+        <p style="font-size: 16px;">Rivaaz Films Team</p>
+        <div style="text-align: center; margin-top: 20px;">
+          <a href="https://www.rivaazfilms.com" style="color: #4CAF50; text-decoration: none; font-size: 16px;">Visit our website</a>
+        </div>
+      </div>
+    `, // html body
+    });
+  } catch (error) {
+    return res.json({ info, message: "Unable to send", sent: false });
+  }
+  return res.json({ otp, message: "Sent", sent: true });
+};
+
+exports.addLegalDoc = async (req, res) => {
+  const { userId } = req.body;
+  console.log(userId);
+
+  let user;
+
+  try {
+    user = await infUser.findById(userId);
+    if (!user) {
+      throw new Error();
+    }
+  } catch (error) {
+    return res.status(404).json({ message: "User not found!" });
+  }
+  if (!req.files) {
+    return res.status(400).json({ message: "Please upload files!" });
+  }
+
+  if (user.legalDoc.length > 2) {
+    fs.unlink(user.legalDoc, (err) => {});
+  }
+
+  user.legalDoc = req.files.doc[0].path;
+
+  user.status = "active";
+  try {
+    await user.save();
+  } catch (error) {
+    console.log(error);
+
+    fs.unlink(req.files.doc[0].path, (err) => {});
+    return res.status(400).json({ message: "Something went wrong !" });
+  }
+  return res
+    .status(200)
+    .json({ message: "Document uploaded successfully.", success: true });
 };

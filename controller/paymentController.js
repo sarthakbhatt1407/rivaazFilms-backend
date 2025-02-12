@@ -165,7 +165,7 @@ const paymentVerifierInf = async (req, res) => {
 
     // Update the paymentStatus in the database
     user.paymentStatus = updatedPaymentStatus;
-    user.status = "active";
+    user.status = "for admin approval";
 
     await user.save();
 

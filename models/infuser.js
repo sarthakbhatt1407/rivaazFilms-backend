@@ -14,13 +14,14 @@ const userSchema = mongoose.Schema({
   ifscCode: { type: String },
   bankName: { type: String },
   profession: { type: String },
-  profileImage: { type: String, default: null },
+  profileImage: { type: String },
   status: { type: String },
   paymentStatus: { type: String },
   paymentOrderId: { type: String },
   price: { type: Number },
   city: { type: String },
   state: { type: String },
+  legalDoc: { type: String, required: true },
 });
 
 module.exports = mongoose.model("infUser", userSchema);

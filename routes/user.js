@@ -29,5 +29,22 @@ router.post(
   fileUpload.fields([{ name: "userPic", maxCount: 1 }]),
   brandAndInfUserController.editInfUser
 );
+router.post(
+  "/update-status",
+  brandAndInfUserController.editInfUserProfileStatus
+);
+router.get("/send-otp-for-delete", brandAndInfUserController.sentOtpForDelete);
+router.post("/delete-user", brandAndInfUserController.deleteUserBrandAndUser);
+router.get(
+  "/get-all-users",
+  fileUpload.fields([{ name: "userPic", maxCount: 1 }]),
+  brandAndInfUserController.getAllUsers
+);
+
+router.post(
+  "/legal-doc",
+  fileUpload.fields([{ name: "doc", maxCount: 1 }]),
+  brandAndInfUserController.addLegalDoc
+);
 
 module.exports = router;

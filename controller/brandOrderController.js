@@ -367,7 +367,18 @@ exports.getInfHomeData = async (req, res) => {
 };
 exports.getAdminHomeData = async (req, res) => {
   const { id } = req.body;
-  let totalOrders, completedOrders, pendingOrders, inProcess, paidOrders;
+  let totalOrders,
+    completedOrders,
+    pendingOrders,
+    inProcess,
+    paidOrders,
+    totalUsers,
+    activeUsers,
+    inactiveUsers,
+    initialUsers,
+    totalInfUsers,
+    totalBrandUsers,
+    adminApprovalUsers;
 
   try {
     totalOrders = await BrandOrder.find({});
@@ -382,6 +393,12 @@ exports.getAdminHomeData = async (req, res) => {
     console.log(paidOrders);
 
     inProcess = await BrandOrder.find({ status: "in process" });
+    totalInfUsers = await infUser.find({});
+    totalBrandUsers = await brandUser.find({ userType: "promoter" });
+    activeUsers = await infUser.find({ status: "active" });
+    inactiveUsers = await infUser.find({ status: "closed" });
+    initialUsers = await infUser.find({ status: "initial" });
+    adminApprovalUsers = await infUser.find({ status: "for admin approval" });
   } catch (error) {
     return res.status(500).json({ message: "Something went wrong." });
   }
@@ -391,6 +408,13 @@ exports.getAdminHomeData = async (req, res) => {
     pendingOrders: pendingOrders.length,
     paidOrders: paidOrders.reduce((acc, curr) => acc + curr.paymentAmount, 0),
     inProcess: inProcess.length,
+    totalUsers: totalInfUsers.length + totalInfUsers.length,
+    totalBrandUsers: totalBrandUsers.length,
+    initialUsers: initialUsers.length,
+    inactiveUsers: inactiveUsers.length,
+    activeUsers: activeUsers.length,
+    totalInfUsers: totalInfUsers.length,
+    adminApprovalUsers: adminApprovalUsers.length,
   });
 };
 
