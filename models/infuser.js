@@ -21,6 +21,9 @@ const userSchema = mongoose.Schema({
   price: { type: Number },
   city: { type: String },
   state: { type: String },
+  bonus: { type: Array },
+  wallet: { type: Array },
+
   legalDoc: { type: String, required: true },
 });
 

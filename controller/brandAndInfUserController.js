@@ -173,6 +173,8 @@ exports.userRegistrationInf = async (req, res, next) => {
       city,
       state,
       legalDoc: " ",
+      wallet: [],
+      bonus: [],
     });
 
     try {
@@ -588,7 +590,7 @@ exports.sentOtpForDelete = async (req, res) => {
   try {
     info = await transporter.sendMail({
       from: '"Rivaaz Films" inforivaazfilms@gmail.com', // sender address
-      to: `sarthakbhatt1407@gmail.com`, // list of receivers
+      to: `rivaazfilm@gmail.com`, // list of receivers
       subject: "Account Deletion Verification", // Subject line
       text: `Your OTP is ${otp}`, // plain text body
       html: `

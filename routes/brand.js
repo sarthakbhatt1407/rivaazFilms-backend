@@ -70,5 +70,25 @@ router.post(
   "/delete-order",
   brandOrderController.deleteBrandOrder // The controller to handle the request
 );
+router.post(
+  "/complete-order",
+  brandOrderController.orderCompleted // The controller to handle the request
+);
+router.post(
+  "/reject-inf-order",
+  brandOrderController.rejectInfOrderFromAdmin // The controller to handle the request
+);
+router.post(
+  "/get-inf-wallet",
+  brandOrderController.getInfWalletdata // The controller to handle the request
+);
+router.post(
+  "/add-inf-wallet",
+  brandOrderController.addwalletTransaction // The controller to handle the request
+);
+router.post(
+  "/delete-inf-wallet",
+  brandOrderController.deleteWallletEntry // The controller to handle the request
+);
 
 module.exports = router;

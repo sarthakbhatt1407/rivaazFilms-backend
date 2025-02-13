@@ -3,7 +3,9 @@ const InfOrder = require("../models/infOrder");
 const brandUser = require("../models/prouser");
 const infUser = require("../models/infuser");
 const infOrder = require("../models/infOrder");
+const { v4: uuidv4 } = require("uuid");
 const fs = require("fs");
+const { log } = require("console");
 exports.createNewOrder = async (req, res) => {
   const {
     brandName,
@@ -278,6 +280,7 @@ exports.addInfFromOrder = async (req, res) => {
           orderAmount: selectedInfluencers.find((user) => {
             return user.id === id;
           }).price,
+          remark: " ",
         });
         await cretedNewInfOrder.save();
       } catch (error) {
@@ -333,6 +336,8 @@ exports.getBrandHomeData = async (req, res) => {
 };
 exports.getInfHomeData = async (req, res) => {
   const { id } = req.body;
+  console.log(id);
+
   let totalOrders,
     completedOrders,
     pendingOrders,
@@ -342,7 +347,7 @@ exports.getInfHomeData = async (req, res) => {
     price;
 
   try {
-    totalOrders = await infOrder.find({ userId: id });
+    totalOrders = await infOrder.find({ infId: id });
     completedOrders = await infOrder.find({
       infId: id,
       status: "completed",
@@ -408,7 +413,7 @@ exports.getAdminHomeData = async (req, res) => {
     pendingOrders: pendingOrders.length,
     paidOrders: paidOrders.reduce((acc, curr) => acc + curr.paymentAmount, 0),
     inProcess: inProcess.length,
-    totalUsers: totalInfUsers.length + totalInfUsers.length,
+    totalUsers: totalInfUsers.length + totalBrandUsers.length,
     totalBrandUsers: totalBrandUsers.length,
     initialUsers: initialUsers.length,
     inactiveUsers: inactiveUsers.length,
@@ -482,4 +487,211 @@ exports.deleteBrandOrder = async (req, res) => {
   return res.status(200).json({
     message: "Order deleted successfully.",
   });
+};
+
+exports.orderCompleted = async (req, res) => {
+  const { orderId, action } = req.body; // Get orderId from request parameters
+
+  try {
+    const order = await BrandOrder.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found." });
+    }
+    if (action == "completed") {
+      order.status = "completed";
+    } else {
+      order.status = "in process";
+    }
+
+    try {
+      await order.save();
+    } catch (error) {
+      return res.status(500).json({ message: "Failed to update order " });
+    }
+    return res.status(200).json({
+      order: order.toObject({ getters: true }),
+      message: "Order updated successfully.",
+    });
+  } catch (error) {
+    console.error("Error fetching order:", error);
+    return res.status(500).json({ message: "Something went wrong." });
+  }
+};
+
+exports.rejectInfOrderFromAdmin = async (req, res) => {
+  const { orderId, remark, infId } = req.body; // Get orderId from request parameters
+  console.log(orderId, remark);
+
+  try {
+    const order = await InfOrder.findOne({
+      brandOrderId: orderId,
+      infId: infId,
+    });
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found." });
+    }
+    order.status = "rejected";
+    order.remark = remark;
+    try {
+      await order.save();
+    } catch (error) {
+      return res.status(500).json({ message: "Failed to update order" });
+    }
+    return res.status(200).json({
+      order: order.toObject({ getters: true }),
+      message: "Order updated successfully.",
+    });
+  } catch (error) {
+    console.error("Error fetching order:", error);
+    return res.status(500).json({ message: "Something went wrong." });
+  }
+};
+
+exports.getInfWalletdata = async (req, res) => {
+  const { id } = req.body;
+  let totalOrders,
+    completedOrders,
+    pendingOrders,
+    inProcess,
+    paidOrders,
+    user,
+    price;
+
+  try {
+    user = await infUser.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    paidOrders = await infOrder.find({
+      infId: id,
+      status: "completed",
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Something went wrong." });
+  }
+  return res.status(200).json({
+    paidOrders: paidOrders.reduce((acc, curr) => acc + curr.orderAmount, 0),
+    wallet: user.wallet,
+    bonusWallet: user.bonus,
+    bonus: user.bonus.reduce((acc, curr) => acc + curr.amount, 0),
+    balancePaid: user.wallet.reduce((acc, curr) => acc + curr.amount, 0),
+    currentBalance:
+      paidOrders.reduce((acc, curr) => acc + curr.orderAmount, 0) -
+      user.wallet.reduce((acc, curr) => acc + curr.amount, 0),
+  });
+};
+
+exports.addwalletTransaction = async (req, res) => {
+  const { remark, infId, amount, action } = req.body; // Get orderId from request parameters
+  console.log(remark, infId, amount, action);
+
+  let user;
+  try {
+    user = await infUser.findById(infId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+    if (action == "wallet") {
+      const now = new Date();
+      const date = now.toISOString().split("T")[0]; // Format: YYYY-MM-DD
+      const formatTime = (date) => {
+        let hours = date.getHours();
+        let minutes = date.getMinutes();
+        const ampm = hours >= 12 ? "PM" : "AM";
+        hours = hours % 12;
+        hours = hours ? hours : 12; // the hour '0' should be '12'
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        const strTime = hours + ":" + minutes + " " + ampm;
+        return strTime;
+      };
+
+      const time = formatTime(now);
+
+      const obj = {
+        id: uuidv4(),
+        date: date,
+        time: time,
+        description: remark,
+        amount: Number(amount),
+      };
+      let arr = [obj, ...user.wallet];
+      user.wallet = arr;
+    }
+    if (action == "bonus") {
+      const now = new Date();
+      const date = now.toISOString().split("T")[0]; // Format: YYYY-MM-DD
+      const formatTime = (date) => {
+        let hours = date.getHours();
+        let minutes = date.getMinutes();
+        const ampm = hours >= 12 ? "PM" : "AM";
+        hours = hours % 12;
+        hours = hours ? hours : 12; // the hour '0' should be '12'
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        const strTime = hours + ":" + minutes + " " + ampm;
+        return strTime;
+      };
+
+      const time = formatTime(now);
+
+      const obj = {
+        id: uuidv4(),
+        date: date,
+        time: time,
+        description: "Bonus",
+        amount: Number(amount),
+      };
+      let arr = [obj, ...user.bonus];
+      user.bonus = arr;
+    }
+    try {
+      await user.save();
+    } catch (error) {
+      return res.status(500).json({ message: "Failed to update wallet" });
+    }
+    return res.status(200).json({ message: "Wallet updated successfully." });
+  } catch (error) {
+    return res.status(500).json({ message: "Something went wrong." });
+  }
+};
+
+exports.deleteWallletEntry = async (req, res) => {
+  const { id, action, infId } = req.body;
+  console.log(id, action, infId);
+
+  let user;
+  try {
+    user = await infUser.findById(infId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    if (action.toLowerCase() == "bonus") {
+      const obj = user.bonus.find((entry) => entry.id == id);
+      if (!obj) {
+        return res.status(404).json({ message: "Entry not found." });
+      }
+      let arr = user.bonus.filter((entry) => entry.id != id);
+      user.bonus = arr;
+    } else {
+      const obj = user.wallet.find((entry) => entry.id == id);
+      if (!obj) {
+        return res.status(404).json({ message: "Entry not found." });
+      }
+      let arr = user.wallet.filter((entry) => entry.id != id);
+      user.wallet = arr;
+    }
+    try {
+      await user.save();
+    } catch (error) {
+      return res.status(500).json({ message: "Failed to update wallet" });
+    }
+    return res.status(200).json({ message: "Wallet updated successfully." });
+  } catch (error) {
+    return res.status(500).json({ message: "Something went wrong." });
+  }
 };

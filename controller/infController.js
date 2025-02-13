@@ -65,7 +65,7 @@ exports.editOrder = async (req, res) => {
     } else if (action == "completed") {
       order.status = "completed";
       order.workLink = link;
-      order.remark = remark;
+      order.remark = " ";
       try {
         await order.save();
       } catch (error) {

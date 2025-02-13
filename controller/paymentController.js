@@ -12,7 +12,6 @@ const razorpayInstance = new Razorpay({
 
 const paymentVerifier = async (req, res) => {
   const orderId = req.params.id; // Razorpay Order ID
-  console.log(orderId);
 
   try {
     // Fetch all payments related to this order ID
@@ -47,15 +46,30 @@ const paymentVerifier = async (req, res) => {
 
     // Find the BrandOrder using paymentOrderId
     const brandOrder = await BrandOrder.findOne({ paymentOrderId: orderId });
+    if (brandOrder.paymentStatus === "completed") {
+      return res.status(200).json({
+        message: `Payment verification completed. Status: ${updatedPaymentStatus}`,
+        paymentStatus: updatedPaymentStatus,
+        brandOrder,
+      });
+    }
 
     if (updatedPaymentStatus === "completed") {
       let idArr = brandOrder.selectedInfluencers.map(
         (influencer) => influencer.id
       );
+      console.log(idArr);
 
-      idArr.forEach(async (id) => {
+      for (const id of idArr) {
+        let alreadyOrder = await InfOrder.findOne({
+          infId: id,
+          brandOrderId: brandOrder._id,
+        });
+        if (alreadyOrder) {
+          continue;
+        }
         try {
-          const cretedNewInfOrder = await new InfOrder({
+          const createdNewInfOrder = new InfOrder({
             brandName: brandOrder.brandName,
             campaignName: brandOrder.campaignName,
             campaignDescription: brandOrder.campaignDescription,
@@ -68,15 +82,16 @@ const paymentVerifier = async (req, res) => {
             orderAmount: brandOrder.selectedInfluencers.find((user) => {
               return user.id === id;
             }).price,
+            remark: " ",
           });
-          await cretedNewInfOrder.save();
+          await createdNewInfOrder.save();
         } catch (error) {
           console.log(error);
           return res
             .status(500)
             .json({ message: "Failed to create new influencer order" });
         }
-      });
+      }
     }
 
     if (!brandOrder) {
