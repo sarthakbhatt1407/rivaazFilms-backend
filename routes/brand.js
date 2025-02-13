@@ -90,5 +90,13 @@ router.post(
   "/delete-inf-wallet",
   brandOrderController.deleteWallletEntry // The controller to handle the request
 );
+router.post(
+  "/add-package",
+  brandOrderController.addNewPackage // The controller to handle the request
+);
+router.get(
+  "/get-all-packages",
+  brandOrderController.getAllPackages // The controller to handle the request
+);
 
 module.exports = router;

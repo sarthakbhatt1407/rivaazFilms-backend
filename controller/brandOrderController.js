@@ -3,6 +3,7 @@ const InfOrder = require("../models/infOrder");
 const brandUser = require("../models/prouser");
 const infUser = require("../models/infuser");
 const infOrder = require("../models/infOrder");
+const Package = require("../models/package");
 const { v4: uuidv4 } = require("uuid");
 const fs = require("fs");
 const { log } = require("console");
@@ -17,6 +18,7 @@ exports.createNewOrder = async (req, res) => {
     campaignUrl,
     userId,
     influencersAmount,
+    paymentAmount,
   } = req.body;
   const InfIdArrParsed = JSON.parse(infIdArr);
   let createdOrder;
@@ -58,7 +60,7 @@ exports.createNewOrder = async (req, res) => {
       selectedInfluencers: JSON.parse(selectedInfluencers),
       audio: audioPath,
       status: "pending",
-      paymentAmount: 0,
+      paymentAmount: paymentAmount ? paymentAmount : 0,
       influencersAmount,
       remark: "",
     });
@@ -411,7 +413,10 @@ exports.getAdminHomeData = async (req, res) => {
     totalOrders: totalOrders.length,
     completedOrders: completedOrders.length,
     pendingOrders: pendingOrders.length,
-    paidOrders: paidOrders.reduce((acc, curr) => acc + curr.paymentAmount, 0),
+    paidOrders: paidOrders.reduce(
+      (acc, curr) => Number(acc) + Number(curr.paymentAmount),
+      0
+    ),
     inProcess: inProcess.length,
     totalUsers: totalInfUsers.length + totalBrandUsers.length,
     totalBrandUsers: totalBrandUsers.length,
@@ -573,14 +578,27 @@ exports.getInfWalletdata = async (req, res) => {
     return res.status(500).json({ message: "Something went wrong." });
   }
   return res.status(200).json({
-    paidOrders: paidOrders.reduce((acc, curr) => acc + curr.orderAmount, 0),
+    paidOrders: Number(
+      paidOrders.reduce(
+        (acc, curr) => Number(acc) + Number(curr.orderAmount),
+        0
+      )
+    ),
     wallet: user.wallet,
     bonusWallet: user.bonus,
-    bonus: user.bonus.reduce((acc, curr) => acc + curr.amount, 0),
-    balancePaid: user.wallet.reduce((acc, curr) => acc + curr.amount, 0),
-    currentBalance:
-      paidOrders.reduce((acc, curr) => acc + curr.orderAmount, 0) -
-      user.wallet.reduce((acc, curr) => acc + curr.amount, 0),
+    bonus: Number(
+      user.bonus.reduce((acc, curr) => Number(acc) + Number(curr.amount), 0)
+    ),
+    balancePaid: Number(
+      user.wallet.reduce((acc, curr) => Number(acc) + Number(curr.amount), 0)
+    ),
+    currentBalance: Number(
+      paidOrders.reduce(
+        (acc, curr) => Number(acc) + Number(curr.orderAmount),
+        0
+      ) -
+        user.wallet.reduce((acc, curr) => Number(acc) + Number(curr.amount), 0)
+    ),
   });
 };
 
@@ -694,4 +712,67 @@ exports.deleteWallletEntry = async (req, res) => {
   } catch (error) {
     return res.status(500).json({ message: "Something went wrong." });
   }
+};
+
+exports.addNewPackage = async (req, res) => {
+  const {
+    name,
+    description,
+    discountedPrice,
+    originalPrice,
+    type,
+    selectedInf,
+  } = req.body;
+
+  let alreadyExist;
+  try {
+    alreadyExist = await Package.findOne({ type: type });
+    if (alreadyExist) {
+      alreadyExist.name = name;
+      alreadyExist.description = description;
+      alreadyExist.discountedPrice = discountedPrice;
+      alreadyExist.originalPrice = originalPrice;
+      alreadyExist.selectedInf = selectedInf;
+      try {
+        await alreadyExist.save();
+      } catch (error) {
+        return res.status(500).json({ message: "Failed to update package" });
+      }
+      return res.status(200).json({ message: "Package updated successfully." });
+    } else {
+      const newPackage = new Package({
+        name,
+        description,
+        discountedPrice: Number(discountedPrice),
+        originalPrice: Number(originalPrice),
+        selectedInf,
+        type,
+      });
+
+      try {
+        await newPackage.save();
+      } catch (error) {
+        return res
+          .status(500)
+          .json({ message: "Failed to create new package" });
+      }
+      return res.status(201).json({ message: "Package created successfully." });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: "Something went wrong." });
+  }
+};
+
+exports.getAllPackages = async (req, res) => {
+  let packages;
+  try {
+    packages = await Package.find({});
+  } catch (error) {
+    return res.status(500).json({ message: "Something went wrong." });
+  }
+  return res.status(200).json({
+    packages: packages.map((pkg) => {
+      return pkg.toObject({ getters: true });
+    }),
+  });
 };
