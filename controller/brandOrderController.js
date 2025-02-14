@@ -3,6 +3,7 @@ const InfOrder = require("../models/infOrder");
 const brandUser = require("../models/prouser");
 const infUser = require("../models/infuser");
 const infOrder = require("../models/infOrder");
+const pronoti = require("../models/pronoti");
 const Package = require("../models/package");
 const { v4: uuidv4 } = require("uuid");
 const fs = require("fs");
@@ -773,6 +774,99 @@ exports.getAllPackages = async (req, res) => {
   return res.status(200).json({
     packages: packages.map((pkg) => {
       return pkg.toObject({ getters: true });
+    }),
+  });
+};
+
+exports.addNewNotification = async (req, res) => {
+  const { des, type } = req.body;
+  const now = new Date();
+  const date = now.toISOString().split("T")[0]; // Format: YYYY-MM-DD
+  const formatTime = (date) => {
+    let hours = date.getHours();
+    let minutes = date.getMinutes();
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    minutes = minutes < 10 ? "0" + minutes : minutes;
+    const strTime = hours + ":" + minutes + " " + ampm;
+    return strTime;
+  };
+
+  const time = formatTime(now);
+  let alreadyExist;
+  try {
+    alreadyExist = await pronoti.findOne({ type: type });
+    if (alreadyExist) {
+      alreadyExist.des = des;
+      alreadyExist.date = date;
+      alreadyExist.time = time;
+
+      try {
+        await alreadyExist.save();
+      } catch (error) {
+        return res
+          .status(500)
+          .json({ message: "Failed to update notification" });
+      }
+      return res
+        .status(200)
+        .json({ message: "Notification updated successfully." });
+    } else {
+      const newPackage = new pronoti({
+        des,
+        type,
+        date,
+        time,
+      });
+
+      try {
+        await newPackage.save();
+      } catch (error) {
+        return res
+          .status(500)
+          .json({ message: "Failed to create new notification" });
+      }
+      return res
+        .status(201)
+        .json({ message: "Notification created successfully." });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: "Something went wrong." });
+  }
+};
+
+exports.deleteNotification = async (req, res) => {
+  const { id } = req.body;
+
+  try {
+    const noti = await pronoti.findById(id);
+    if (!noti) {
+      return res.status(404).json({ message: "Notification not found." });
+    }
+    try {
+      await noti.deleteOne();
+    } catch (error) {
+      return res.status(500).json({ message: "Something went wrong." });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: "Something went wrong." });
+  }
+  return res.status(200).json({
+    message: "Notification deleted successfully.",
+  });
+};
+
+exports.getNotifications = async (req, res) => {
+  let notifications;
+  try {
+    notifications = await pronoti.find({});
+  } catch (error) {
+    return res.status(500).json({ message: "Something went wrong." });
+  }
+  return res.status(200).json({
+    notifications: notifications.map((noti) => {
+      return noti.toObject({ getters: true });
     }),
   });
 };

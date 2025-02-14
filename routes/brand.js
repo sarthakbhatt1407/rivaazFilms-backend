@@ -98,5 +98,17 @@ router.get(
   "/get-all-packages",
   brandOrderController.getAllPackages // The controller to handle the request
 );
+router.get(
+  "/get-all-notification",
+  brandOrderController.getNotifications // The controller to handle the request
+);
+router.post(
+  "/add-notification",
+  brandOrderController.addNewNotification // The controller to handle the request
+);
+router.post(
+  "/delete-notification",
+  brandOrderController.deleteNotification // The controller to handle the request
+);
 
 module.exports = router;
