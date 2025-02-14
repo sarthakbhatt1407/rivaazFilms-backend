@@ -13,11 +13,10 @@ const brandOrderSchema = mongoose.Schema({
   influencersAmount: { type: Number },
   campaignUrl: { type: String, required: true },
   campaignDescription: { type: String, required: true },
-  video: { type: String, required: true },
-  images: { type: String, required: true },
+  video: { type: String },
+  images: { type: String },
   selectedInfluencers: { type: Array, required: true },
-
-  audio: { type: String, required: true },
+  audio: { type: String },
 });
 
 module.exports = mongoose.model("Brandorder", brandOrderSchema);

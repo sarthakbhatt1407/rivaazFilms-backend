@@ -10,7 +10,7 @@ const InfOrderSchema = mongoose.Schema({
   workLink: { type: String },
   remark: { type: String },
   remark: { type: String },
-  images: { type: String, required: true },
+  images: { type: String },
   brandOrderId: { type: String, required: true },
 });
 
