@@ -124,7 +124,7 @@ exports.userRegistrationInf = async (req, res, next) => {
     role,
     price,
     city,
-    state,
+    state
   } = req.body;
 
   console.log(contactNum);
@@ -165,16 +165,22 @@ exports.userRegistrationInf = async (req, res, next) => {
       ifscCode,
       bankName,
       profession,
+      bankAccountHolderName: '',
       profileImage: userPicImg.path,
-      status: "initial",
-      paymentStatus: "pending",
-      paymentOrdrId: " ",
+      status: "for admin approval",
+      paymentStatus: "completed",
+      paymentOrdrId: "demo",
       price,
       city,
       state,
       legalDoc: " ",
       wallet: [],
       bonus: [],
+      facebookUrl: " ",
+      youtubeUrl: " ",
+      tikTokUrl: " ",
+      spotifyUrl:" ",
+      jioSaavnUrl: " ",
     });
 
     try {
@@ -199,6 +205,21 @@ exports.getAllInfUsers = async (req, res) => {
   try {
     users = await infUser.find({ status: "active" });
   } catch (error) {}
+  return res.status(200).json({
+    users: users.map((u) => {
+      return u.toObject({ getters: true });
+    }),
+    status: true,
+  });
+};
+exports.getAllInfUsersWithInactive = async (req, res) => {
+  let users;
+  try {
+    users = await infUser.find({ });
+  } catch (error) {}
+  users = users.filter(u=>{
+    return u.status =='active' || u.status =='closed'
+  })
   return res.status(200).json({
     users: users.map((u) => {
       return u.toObject({ getters: true });
@@ -445,8 +466,9 @@ exports.editInfUser = async (req, res) => {
     ifscCode,
     bankName,
     profession,
-    price,
+    price,facebookUrl,youtubeUrl,tikTokUrl,spotifyUrl,jioSaavnUrl,bankAccountHolderName
   } = req.body;
+ 
   console.log(id, name);
 
   let user;
@@ -471,6 +493,12 @@ exports.editInfUser = async (req, res) => {
     user.bankName = bankName || user.bankName;
     user.profession = profession || user.profession;
     user.price = price || user.price;
+    user.facebookUrl = facebookUrl.trim() || user.facebookUrl;
+    user.youtubeUrl = youtubeUrl.trim() || user.youtubeUrl;
+    user.tikTokUrl = tikTokUrl.trim() || user.tikTokUrl;
+    user.spotifyUrl = spotifyUrl.trim() || user.spotifyUrl;
+    user.jioSaavnUrl = jioSaavnUrl.trim() || user.jioSaavnUrl;
+    user.bankAccountHolderName = bankAccountHolderName.trim() || user.bankAccountHolderName;
 
     // Handle profile image upload
     if (req.files && req.files["userPic"]) {

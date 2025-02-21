@@ -11,6 +11,7 @@ const InfOrderSchema = mongoose.Schema({
   remark: { type: String },
   remark: { type: String },
   images: { type: String },
+  screenshot: { type: String },
   brandOrderId: { type: String, required: true },
 });
 

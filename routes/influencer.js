@@ -14,6 +14,12 @@ router.post(
 );
 router.post(
   "/edit-order",
+  fileUpload.fields([
+    {
+      name: "image", // Matches the field name for image files
+      maxCount: 1, // Allow up to 5 image files
+    },
+  ]),
   infController.editOrder // The controller to handle the request
 );
 router.post(

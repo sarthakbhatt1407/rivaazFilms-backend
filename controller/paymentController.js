@@ -83,6 +83,7 @@ const paymentVerifier = async (req, res) => {
               return user.id === id;
             }).price,
             remark: " ",
+            screenshot: " "
           });
           await createdNewInfOrder.save();
         } catch (error) {

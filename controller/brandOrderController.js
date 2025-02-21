@@ -19,7 +19,8 @@ exports.createNewOrder = async (req, res) => {
     campaignUrl,
     userId,
     influencersAmount,
-    paymentAmount,
+    paymentAmount,noOfNonCre,
+    requirements
   } = req.body;
   const InfIdArrParsed = JSON.parse(infIdArr);
   let createdOrder;
@@ -64,29 +65,11 @@ exports.createNewOrder = async (req, res) => {
       paymentAmount: paymentAmount ? paymentAmount : 0,
       influencersAmount,
       remark: "",
+      noOfNonCre,
+      requirements
     });
 
-    // InfIdArrParsed.forEach(async (id) => {
-    //   try {
-    //     const cretedNewInfOrder = await new InfOrder({
-    //       brandName,
-    //       campaignName,
-    //       campaignDescription,
-    //       infId: id,
-    //       images: imagePaths,
-    //       brandOrderId: createdOrder._id,
-    //       status: "pending",
-    //       workLink: "",
-    //       remark: "",
-    //     });
-    //     await cretedNewInfOrder.save();
-    //   } catch (error) {
-    //     console.log(error);
-    //     return res
-    //       .status(500)
-    //       .json({ message: "Failed to create new influencer order" });
-    //   }
-    // });
+ 
     await createdOrder.save();
   } catch (error) {
     console.log(error);
@@ -284,6 +267,7 @@ exports.addInfFromOrder = async (req, res) => {
             return user.id === id;
           }).price,
           remark: " ",
+          screenshot:' '
         });
         await cretedNewInfOrder.save();
       } catch (error) {
@@ -313,7 +297,7 @@ exports.addInfFromOrder = async (req, res) => {
 
 exports.getBrandHomeData = async (req, res) => {
   const { id } = req.body;
-  let totalOrders, completedOrders, pendingOrders, inProcess, paidOrders;
+  let totalOrders, completedOrders, pendingOrders, inProcess, paidOrders, rejectOrder;
   try {
     totalOrders = await BrandOrder.find({ userId: id });
     completedOrders = await BrandOrder.find({
@@ -326,11 +310,13 @@ exports.getBrandHomeData = async (req, res) => {
       paymentStatus: "completed",
     });
     inProcess = await BrandOrder.find({ userId: id, status: "in process" });
+    rejectOrder = await BrandOrder.find({ userId: id, status: "rejected" });
   } catch (error) {
     return res.status(500).json({ message: "Something went wrong." });
   }
   return res.status(200).json({
     totalOrders: totalOrders.length,
+    rejectOrder: rejectOrder.length,
     completedOrders: completedOrders.length,
     pendingOrders: pendingOrders.length,
     paidOrders: paidOrders.reduce((acc, curr) => acc + curr.paymentAmount, 0),
@@ -347,8 +333,8 @@ exports.getInfHomeData = async (req, res) => {
     inProcess,
     paidOrders,
     user,
-    price;
-
+    price,
+rejectOrder;
   try {
     totalOrders = await infOrder.find({ infId: id });
     completedOrders = await infOrder.find({
@@ -362,11 +348,13 @@ exports.getInfHomeData = async (req, res) => {
       status: "completed",
     });
     inProcess = await infOrder.find({ infId: id, status: "in process" });
+    rejectOrder = await infOrder.find({ infId: id, status: "rejected" });
   } catch (error) {
     return res.status(500).json({ message: "Something went wrong." });
   }
   return res.status(200).json({
     totalOrders: totalOrders.length,
+    rejectOrder: rejectOrder.length,
     completedOrders: completedOrders.length,
     pendingOrders: pendingOrders.length,
     paidOrders: paidOrders.reduce((acc, curr) => acc + curr.orderAmount, 0),

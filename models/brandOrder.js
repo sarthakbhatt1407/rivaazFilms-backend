@@ -8,6 +8,7 @@ const brandOrderSchema = mongoose.Schema({
   paymentStatus: { type: String, required: true },
   paymentOrderId: { type: String },
   remark: { type: String },
+  noOfNonCre: { type: String },
   status: { type: String, required: true },
   paymentAmount: { type: Number },
   influencersAmount: { type: Number },
@@ -15,6 +16,7 @@ const brandOrderSchema = mongoose.Schema({
   campaignDescription: { type: String, required: true },
   video: { type: String },
   images: { type: String },
+  requirements: { type: String },
   selectedInfluencers: { type: Array, required: true },
   audio: { type: String },
 });

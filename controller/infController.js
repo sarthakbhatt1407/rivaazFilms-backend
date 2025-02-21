@@ -46,7 +46,7 @@ exports.getOrderById = async (req, res) => {
 };
 exports.editOrder = async (req, res) => {
   const { orderId, action, remark, link } = req.body; // Get orderId from request parameters
-  console.log(orderId, action, remark);
+  console.log(orderId, action, remark, link);
 
   try {
     const order = await InfOrder.findById(orderId);
@@ -62,21 +62,26 @@ exports.editOrder = async (req, res) => {
       } catch (error) {
         return res.status(500).json({ message: "Something went wrong." });
       }
-    } else if (action == "completed") {
-      order.status = "completed";
-      order.workLink = link;
+    } else if (action == "completed") {order.status = "completed";
+      order.workLink = link ;
       order.remark = " ";
-      try {
-        await order.save();
-      } catch (error) {
-        return res.status(500).json({ message: "Something went wrong." });
-      }
+      order.screenshot = "";
+    if (req.files && req.files["image"]) {
+      let userPicImg = req.files["image"][0];
+      order.screenshot = userPicImg.path;
+    }
+    try {
+      await order.save();
+    } catch (error) {        console.log(error);
+      return res.status(500).json({ message: "Something went wrong." });
+    }
+      
     } else {
       order.status = "rejected";
       order.remark = remark;
       try {
         await order.save();
-      } catch (error) {
+      } catch (error) {        console.log(error);
         return res.status(500).json({ message: "Something went wrong." });
       }
     }
