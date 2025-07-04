@@ -250,8 +250,12 @@ exports.getAllInfUsers = async (req, res) => {
     status: true,
   });
 };
-exports.getAllInfUsersWithInactive = async (req, res) => {
-  let users;
+
+exports.userLogin = async (req, res) => {
+  const { contactNum } = req.body;
+  console.log(contactNum);
+
+  let user, token;
   try {
     users = await infUser.find({ });
   } catch (error) {}
