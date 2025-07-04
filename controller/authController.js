@@ -1,7 +1,7 @@
 const User = require("../models/user");
 const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
-
+const xlsx = require("xlsx");
 const fs = require("fs");
 // const fs = require("fs");
 
@@ -41,12 +41,30 @@ const validateEmail = (email) => {
       /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
     );
 };
+exports.userExists = async (req, res) => {
+  const { contactNum } = req.body;
+
+  if (!contactNum || contactNum.length === 0) {
+    return res.status(400).json({ message: "Kindly fill contact number" });
+  }
+
+  let user = await User.findOne({ phone: contactNum });
+
+
+  if (user) {
+    return res
+      .status(201)
+      .json({ message: "User already exists.", exists: true });
+  }
+
+  return res.status(404).json({ message: "User not exists.", exists: false });
+};
 
 const userRegistration = async (req, res, next) => {
   const {
     name,
     email,
-    password,
+
     phone,
     city,
     state,
@@ -79,7 +97,7 @@ const userRegistration = async (req, res, next) => {
     const createdUser = new User({
       name,
       email,
-      password: password,
+      password: '***************',
       userSince: months[month] + " " + year,
       isAdmin: false,
       phone,
@@ -424,27 +442,24 @@ const passwordReseter = async (req, res, next) => {
 };
 
 const userLogin = async (req, res, next) => {
-  const { email, password } = req.body;
+  const { phone } = req.body;
+  console.log(phone);
+  
   let user;
-  let passIsValid = false;
 
-  if (!validateEmail(email)) {
-    return res.status(404).json({ message: "Invalid Email" });
-  }
+ 
   try {
-    user = await User.findOne({ email: email });
-    if (!user) {
-      throw new Error();
-    }
+    user = await User.findOne({ phone: phone });
+  
   } catch (err) {
     return res.status(404).json({
-      message: "Email not found, Please Signup first",
+      message: "User Not Found, Please Signup first",
       success: false,
     });
   }
-  //   passIsValid = await bcrypt.compare(password, user.password);
-  if (user && email === user.email && password === user.password) {
-    token = jwt.sign({ userId: user.id, userEmail: email }, "secret_key");
+ 
+  if (user && phone == user.phone) {
+    token = jwt.sign({ userId: user.id, userEmail: user.email }, "secret_key");
     req.session.token = token;
     req.session.userId = user.id;
     user.password = "Keep Guessing";
@@ -465,6 +480,48 @@ const userLogin = async (req, res, next) => {
       .json({ message: "Invalid Credentials", success: false });
   }
 };
+// const userLogin = async (req, res, next) => {
+//   const { email, password } = req.body;
+//   let user;
+//   let passIsValid = false;
+
+//   if (!validateEmail(email)) {
+//     return res.status(404).json({ message: "Invalid Email" });
+//   }
+//   try {
+//     user = await User.findOne({ email: email });
+//     if (!user) {
+//       throw new Error();
+//     }
+//   } catch (err) {
+//     return res.status(404).json({
+//       message: "Email not found, Please Signup first",
+//       success: false,
+//     });
+//   }
+
+//   if (user && email === user.email && password === user.password) {
+//     token = jwt.sign({ userId: user.id, userEmail: email }, "secret_key");
+//     req.session.token = token;
+//     req.session.userId = user.id;
+//     user.password = "Keep Guessing";
+//     return res.status(201).json({
+//       user: {
+//         id: user.id,
+//         isAdmin: user.isAdmin,
+//         name: user.name,
+//       },
+//       message: "Logged In",
+//       isloggedIn: true,
+//       token: user.isAdmin === true ? token : "",
+//       success: true,
+//     });
+//   } else {
+//     return res
+//       .status(404)
+//       .json({ message: "Invalid Credentials", success: false });
+//   }
+// };
 
 const userIsLoggedIn = async (req, res) => {
   const { userId, token } = req.body;
@@ -1129,6 +1186,95 @@ exports.deleteExcelFile = async (req, res) => {
   return res.status(200).json({ message: "File deleted.", success: true });
 };
 
+
+
+const uploadExcelAndCalculate = async (req, res) => {
+  try {
+    // Check file presence
+    if (!req.files || !req.files['excel'] || !req.files['excel'][0]) {
+      return res.status(400).json({ message: "Please upload an Excel file." });
+    }
+    const filePath = req.files['excel'][0].path;
+    console.log("File path to read:", filePath);
+    console.log("File  to read:", req.files['excel'][0]);
+
+    // Read workbook
+    const workbook = xlsx.readFile(filePath);
+    console.log("Workbook read successfully:", workbook);
+    
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const data = xlsx.utils.sheet_to_json(sheet);
+    console.log("Sheet data sample:", data[0]); // Log first row to see actual keys
+
+    // Month mapping
+    const monthAbbrMap = {
+      Jan: "Jan", January: "Jan",
+      Feb: "Feb", February: "Feb",
+      Mar: "Mar", March: "Mar",
+      Apr: "Apr", April: "Apr",
+      May: "May",
+      Jun: "Jun", June: "Jun",
+      Jul: "Jul", July: "Jul",
+      Aug: "Aug", August: "Aug",
+      Sep: "Sep", September: "Sep",
+      Oct: "Oct", October: "Oct",
+      Nov: "Nov", November: "Nov",
+      Dec: "Dec", December: "Dec"
+    };
+
+    const result = {};
+
+    data.forEach((row) => {
+      // Try all possible header names
+      const label = row["label"] || row["Label"] || row["Label Name"];
+      const netPayableRaw = row["Net Payable"] || row["netPayable"] || row["NetPayable"];
+      const dateStr = row["dataset_date"] || row["Date"] || row["date"];
+
+      if (!label || !dateStr) return;
+
+      const netPayable = Number.isFinite(parseFloat(netPayableRaw)) ? parseFloat(netPayableRaw) : 0;
+
+      // Parse date string
+      const [monthPart, yearPart] = dateStr.split("-");
+      const monthKey = monthAbbrMap[monthPart.trim()] || monthPart.trim().slice(0, 3);
+
+      let year = parseInt(yearPart);
+      if (yearPart && yearPart.length === 2) {
+        year += year >= 50 ? 1900 : 2000;
+      }
+
+      if (!result[label]) {
+        result[label] = {};
+      }
+
+      if (!result[label][year]) {
+        result[label][year] = {
+          Jan: 0, Feb: 0, Mar: 0, Apr: 0, May: 0, Jun: 0,
+          Jul: 0, Aug: 0, Sep: 0, Oct: 0, Nov: 0, Dec: 0
+        };
+      }
+
+      if (result[label][year][monthKey] !== undefined) {
+        result[label][year][monthKey] += netPayable;
+      } else {
+        console.warn(`Unknown month key: ${monthKey}, skipping.`);
+      }
+    });
+
+    console.log("Parsed result:", result);
+
+    return res.status(200).json({
+      message: "Excel parsed and calculated successfully.",
+      data: result
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Something went wrong while processing Excel." });
+  }
+};
+
+
 exports.userRegistration = userRegistration;
 exports.userLogin = userLogin;
 exports.userIsLoggedIn = userIsLoggedIn;
@@ -1145,3 +1291,4 @@ exports.sendEmailForOtp = sendEmailForOtp;
 exports.editProfile = editProfile;
 exports.addPaidEarning = addPaidEarning;
 exports.editPaid = editPaid;
+exports.uploadExcelAndCalculate = uploadExcelAndCalculate;

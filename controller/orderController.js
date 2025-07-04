@@ -11,6 +11,64 @@ cloudinary.config({
 });
 
 const fs = require("fs");
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+  service: "Gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.SMPT_EMAIL,
+    pass: process.env.SMPT_PASS,
+  },
+});
+  // sendSongLiveEmailToUser({email:'sarthakbhatt1407@gmail.com'},{});
+function sendSongLiveEmailToUser(user, order) {
+  console.log("Sending song live email to user:", user, order);
+  
+  if (!user.email) return;
+  const mailOptions = {
+    from: process.env.SMPT_EMAIL,
+    to: user.email,
+    subject: `🎵 Your Song "${order.title}" is Now Live!`,
+    html: `
+      <div style="font-family: Arial, sans-serif; background: #f9f9f9; padding: 32px;">
+        <div style="max-width: 500px; margin: auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 32px;">
+          <div style="text-align:center;">
+            <img src="https://i.ibb.co/1ttPGZbp/ready.png" alt="Song Live" width="50" style="margin-bottom: 16px;" />
+            <h2 style="color: #222;">Your Song is Live!</h2>
+          </div>
+          <p style="font-size: 16px; color: #444;">
+            Hello <b>${user.name || "User"}</b>,
+          </p>
+          <p style="font-size: 16px; color: #444;">
+            Congratulations! Your song <b>${order.title}</b> is now live on Rivaaz Films.
+          </p>
+          <div style="background: #f1f5fb; border-radius: 6px; padding: 16px; margin: 16px 0;">
+            <b>Label:</b> ${order.labelName || ""}<br/>
+            <b>Release Date:</b> ${order.releaseDate || ""}<br/>
+            <b>Status:</b> <span style="color:green;font-weight:bold;">Live</span>
+          </div>
+          <p style="font-size: 16px; color: #444;">
+            Thank you for choosing Rivaaz Films. We wish your song great success!
+          </p>
+          <div style="text-align:center; margin: 24px 0;">
+            <a href="https://rivaazfilms.com/" style="background: #007bff; color: #fff; padding: 12px 28px; border-radius: 5px; text-decoration: none; font-weight: bold;">Go to Dashboard</a>
+          </div>
+          <p style="font-size: 14px; color: #888; text-align:center;">
+            Best regards,<br/>Rivaaz Films Team
+          </p>
+        </div>
+      </div>
+    `,
+  };
+  transporter.sendMail(mailOptions, (err, info) => {
+    if (err) {
+      console.error(`Failed to send live song email to user ${user._id}:`, err);
+    }
+  });
+}
 
 const months = [
   "January",
@@ -357,6 +415,7 @@ const editOrderById = async (req, res) => {
       order.remark = remark;
     }
     if (action === "completed") {
+     
       order.status = "completed";
       order.remark = "";
     }
@@ -451,6 +510,7 @@ order.status ="waiting"
     .json({ message: "Order updated successfully", success: true });
 };
 
+
 const getAllOrders = async (req, res) => {
   const { userId } = req.query;
   let user;
@@ -516,6 +576,12 @@ const addUPCISRT = async (req, res) => {
     order.markModified("status");
     order.markModified("dateLive");
     await order.save();
+     const orderUser = await User.findById(order.userId);
+      console.log("orderUser", orderUser);
+      
+       if (orderUser) {
+          sendSongLiveEmailToUser(orderUser, order);
+        }
   } catch (error) {
     return res.status(400).json({ message: "Something went wrong" });
   }

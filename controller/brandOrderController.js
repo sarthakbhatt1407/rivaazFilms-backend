@@ -7,7 +7,73 @@ const pronoti = require("../models/pronoti");
 const Package = require("../models/package");
 const { v4: uuidv4 } = require("uuid");
 const fs = require("fs");
-const { log } = require("console");
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+  service: "Gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.SMPT_EMAIL,
+    pass: process.env.SMPT_PASS,
+  },
+});
+
+
+function sendOrderEmailToInfluencers(idArr, brandOrder) {
+  console.log("Sending order email to influencers:", idArr, brandOrder);
+  
+  idArr.forEach(async (id) => {
+    try {
+      const influencer = await infUser.findById(id);
+      if (influencer && influencer.email) {
+        const mailOptions = {
+          from: process.env.SMPT_EMAIL,
+          to: influencer.email,
+          subject: `🌟 New Order: ${brandOrder.campaignName}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; background: #f9f9f9; padding: 32px;">
+              <div style="max-width: 500px; margin: auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 32px;">
+                <div style="text-align:center;">
+                  <img src="https://i.ibb.co/1ttPGZbp/ready.png" alt="Order" width="50" style="margin-bottom: 16px;" />
+                  <h2 style="color: #222;">You Have a New Order!</h2>
+                </div>
+                <p style="font-size: 16px; color: #444;">
+                  Hello <b>${influencer.name || "Influencer"}</b>,
+                </p>
+                <p style="font-size: 16px; color: #444;">
+                  Congratulations! You have received a new order for the campaign:
+                </p>
+                <div style="background: #f1f5fb; border-radius: 6px; padding: 16px; margin: 16px 0;">
+                  <b>Brand:</b> ${brandOrder.brandName}<br/>
+                  <b>Campaign:</b> ${brandOrder.campaignName}<br/>
+                  <b>Description:</b> ${brandOrder.campaignDescription}
+                </div>
+                <p style="font-size: 16px; color: #444;">
+                  Please log in to your dashboard to view more details and start working on your order.
+                </p>
+                <div style="text-align:center; margin: 24px 0;">
+                  <a href="https://rivaazfilms.com/" style="background: #007bff; color: #fff; padding: 12px 28px; border-radius: 5px; text-decoration: none; font-weight: bold;">Go to Dashboard</a>
+                </div>
+                <p style="font-size: 14px; color: #888; text-align:center;">
+                  Thank you for collaborating with us!<br/>Rivaaz Films Team
+                </p>
+              </div>
+            </div>
+          `,
+        };
+        transporter.sendMail(mailOptions, (err, info) => {
+          if (err) {
+            console.error(`Failed to send email to influencer ${id}:`, err);
+          }
+        });
+      }
+    } catch (err) {
+      console.error(`Failed to process influencer ${id}:`, err);
+    }
+  });
+}
 exports.createNewOrder = async (req, res) => {
   const {
     brandName,
@@ -19,7 +85,8 @@ exports.createNewOrder = async (req, res) => {
     campaignUrl,
     userId,
     influencersAmount,
-    paymentAmount,
+    paymentAmount,noOfNonCre,
+    requirements
   } = req.body;
   const InfIdArrParsed = JSON.parse(infIdArr);
   let createdOrder;
@@ -64,29 +131,11 @@ exports.createNewOrder = async (req, res) => {
       paymentAmount: paymentAmount ? paymentAmount : 0,
       influencersAmount,
       remark: "",
+      noOfNonCre,
+      requirements
     });
 
-    // InfIdArrParsed.forEach(async (id) => {
-    //   try {
-    //     const cretedNewInfOrder = await new InfOrder({
-    //       brandName,
-    //       campaignName,
-    //       campaignDescription,
-    //       infId: id,
-    //       images: imagePaths,
-    //       brandOrderId: createdOrder._id,
-    //       status: "pending",
-    //       workLink: "",
-    //       remark: "",
-    //     });
-    //     await cretedNewInfOrder.save();
-    //   } catch (error) {
-    //     console.log(error);
-    //     return res
-    //       .status(500)
-    //       .json({ message: "Failed to create new influencer order" });
-    //   }
-    // });
+ 
     await createdOrder.save();
   } catch (error) {
     console.log(error);
@@ -284,6 +333,7 @@ exports.addInfFromOrder = async (req, res) => {
             return user.id === id;
           }).price,
           remark: " ",
+          screenshot:' '
         });
         await cretedNewInfOrder.save();
       } catch (error) {
@@ -303,6 +353,7 @@ exports.addInfFromOrder = async (req, res) => {
     } catch (error) {
       return res.status(500).json({ message: "Failed to update order" });
     }
+    sendOrderEmailToInfluencers(idArr, brandOrder);
   } catch (error) {
     return res.status(500).json({ message: "Something went wrong." });
   }
@@ -313,7 +364,7 @@ exports.addInfFromOrder = async (req, res) => {
 
 exports.getBrandHomeData = async (req, res) => {
   const { id } = req.body;
-  let totalOrders, completedOrders, pendingOrders, inProcess, paidOrders;
+  let totalOrders, completedOrders, pendingOrders, inProcess, paidOrders, rejectOrder;
   try {
     totalOrders = await BrandOrder.find({ userId: id });
     completedOrders = await BrandOrder.find({
@@ -326,11 +377,13 @@ exports.getBrandHomeData = async (req, res) => {
       paymentStatus: "completed",
     });
     inProcess = await BrandOrder.find({ userId: id, status: "in process" });
+    rejectOrder = await BrandOrder.find({ userId: id, status: "rejected" });
   } catch (error) {
     return res.status(500).json({ message: "Something went wrong." });
   }
   return res.status(200).json({
     totalOrders: totalOrders.length,
+    rejectOrder: rejectOrder.length,
     completedOrders: completedOrders.length,
     pendingOrders: pendingOrders.length,
     paidOrders: paidOrders.reduce((acc, curr) => acc + curr.paymentAmount, 0),
@@ -347,8 +400,8 @@ exports.getInfHomeData = async (req, res) => {
     inProcess,
     paidOrders,
     user,
-    price;
-
+    price,
+rejectOrder;
   try {
     totalOrders = await infOrder.find({ infId: id });
     completedOrders = await infOrder.find({
@@ -362,11 +415,13 @@ exports.getInfHomeData = async (req, res) => {
       status: "completed",
     });
     inProcess = await infOrder.find({ infId: id, status: "in process" });
+    rejectOrder = await infOrder.find({ infId: id, status: "rejected" });
   } catch (error) {
     return res.status(500).json({ message: "Something went wrong." });
   }
   return res.status(200).json({
     totalOrders: totalOrders.length,
+    rejectOrder: rejectOrder.length,
     completedOrders: completedOrders.length,
     pendingOrders: pendingOrders.length,
     paidOrders: paidOrders.reduce((acc, curr) => acc + curr.orderAmount, 0),

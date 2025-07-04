@@ -12,6 +12,7 @@ router.post(
   authController.userRegistration
 );
 router.post("/login", authController.userLogin);
+router.post("/check-user", authController.userExists);
 router.get("/get-user", authController.getUserDetailsWithUserId);
 router.post("/session-checker", authController.userIsLoggedIn);
 router.post("/add-report", authController.userAnalyticsReportAdder);
@@ -37,6 +38,11 @@ router.post(
   "/add-excel",
   fileUpload.fields([{ name: "excel", maxCount: 1 }]),
   authController.addExcelSheet
+);
+router.post(
+  "/cal-excel",
+  fileUpload.fields([{ name: "excel", maxCount: 1 }]),
+  authController.uploadExcelAndCalculate
 );
 
 router.post(

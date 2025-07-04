@@ -4,11 +4,77 @@ const BrandOrder = require("../models/brandOrder");
 const InfOrder = require("../models/infOrder");
 const brandUser = require("../models/prouser");
 const infUser = require("../models/infuser");
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+  service: "Gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.SMPT_EMAIL,
+    pass: process.env.SMPT_PASS,
+  },
+});
 
 const razorpayInstance = new Razorpay({
   key_id: RAZORPAY_ID_KEY,
   key_secret: RAZORPAY_SECRET_KEY,
 });
+
+function sendOrderEmailToInfluencers(idArr, brandOrder) {
+  console.log("Sending order email to influencers:", idArr, brandOrder);
+  
+  idArr.forEach(async (id) => {
+    try {
+      const influencer = await infUser.findById(id);
+      if (influencer && influencer.email) {
+        const mailOptions = {
+          from: process.env.SMPT_EMAIL,
+          to: influencer.email,
+          subject: `🌟 New Order: ${brandOrder.campaignName}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; background: #f9f9f9; padding: 32px;">
+              <div style="max-width: 500px; margin: auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 32px;">
+                <div style="text-align:center;">
+                  <img src="https://i.ibb.co/1ttPGZbp/ready.png" alt="Order" width="50" style="margin-bottom: 16px;" />
+                  <h2 style="color: #222;">You Have a New Order!</h2>
+                </div>
+                <p style="font-size: 16px; color: #444;">
+                  Hello <b>${influencer.name || "Influencer"}</b>,
+                </p>
+                <p style="font-size: 16px; color: #444;">
+                  Congratulations! You have received a new order for the campaign:
+                </p>
+                <div style="background: #f1f5fb; border-radius: 6px; padding: 16px; margin: 16px 0;">
+                  <b>Brand:</b> ${brandOrder.brandName}<br/>
+                  <b>Campaign:</b> ${brandOrder.campaignName}<br/>
+                  <b>Description:</b> ${brandOrder.campaignDescription}
+                </div>
+                <p style="font-size: 16px; color: #444;">
+                  Please log in to your dashboard to view more details and start working on your order.
+                </p>
+                <div style="text-align:center; margin: 24px 0;">
+                  <a href="https://rivaazfilms.com/" style="background: #007bff; color: #fff; padding: 12px 28px; border-radius: 5px; text-decoration: none; font-weight: bold;">Go to Dashboard</a>
+                </div>
+                <p style="font-size: 14px; color: #888; text-align:center;">
+                  Thank you for collaborating with us!<br/>Rivaaz Films Team
+                </p>
+              </div>
+            </div>
+          `,
+        };
+        transporter.sendMail(mailOptions, (err, info) => {
+          if (err) {
+            console.error(`Failed to send email to influencer ${id}:`, err);
+          }
+        });
+      }
+    } catch (err) {
+      console.error(`Failed to process influencer ${id}:`, err);
+    }
+  });
+}
 
 const paymentVerifier = async (req, res) => {
   const orderId = req.params.id; // Razorpay Order ID
@@ -58,7 +124,7 @@ const paymentVerifier = async (req, res) => {
       let idArr = brandOrder.selectedInfluencers.map(
         (influencer) => influencer.id
       );
-      console.log(idArr);
+ 
 
       for (const id of idArr) {
         let alreadyOrder = await InfOrder.findOne({
@@ -83,6 +149,7 @@ const paymentVerifier = async (req, res) => {
               return user.id === id;
             }).price,
             remark: " ",
+            screenshot: " "
           });
           await createdNewInfOrder.save();
         } catch (error) {
@@ -92,7 +159,9 @@ const paymentVerifier = async (req, res) => {
             .json({ message: "Failed to create new influencer order" });
         }
       }
+      sendOrderEmailToInfluencers(idArr, brandOrder);
     }
+   
 
     if (!brandOrder) {
       return res.status(404).json({ message: "Brand order not found." });
@@ -113,6 +182,7 @@ const paymentVerifier = async (req, res) => {
     return res.status(400).json({ message: "Error verifying payment", error });
   }
 };
+
 const createOrder = async (req, res) => {
   try {
     const amount = req.body.amount * 100;
