@@ -250,6 +250,21 @@ exports.getAllInfUsers = async (req, res) => {
     status: true,
   });
 };
+exports.getAllInfUsersWithInactive = async (req, res) => {
+  let users;
+  try {
+    users = await infUser.find({ });
+  } catch (error) {}
+  users = users.filter(u=>{
+    return u.status =='active' || u.status =='closed'
+  })
+  return res.status(200).json({
+    users: users.map((u) => {
+      return u.toObject({ getters: true });
+    }),
+    status: true,
+  });
+};
 
 exports.userLogin = async (req, res) => {
   const { contactNum } = req.body;
