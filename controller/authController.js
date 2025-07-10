@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const xlsx = require("xlsx");
 const fs = require("fs");
+const { log } = require("console");
 // const fs = require("fs");
 
 const transporter = nodemailer.createTransport({
@@ -50,7 +51,6 @@ exports.userExists = async (req, res) => {
 
   let user = await User.findOne({ phone: contactNum });
 
-
   if (user) {
     return res
       .status(201)
@@ -97,7 +97,7 @@ const userRegistration = async (req, res, next) => {
     const createdUser = new User({
       name,
       email,
-      password: '***************',
+      password: "***************",
       userSince: months[month] + " " + year,
       isAdmin: false,
       phone,
@@ -444,20 +444,18 @@ const passwordReseter = async (req, res, next) => {
 const userLogin = async (req, res, next) => {
   const { phone } = req.body;
   console.log(phone);
-  
+
   let user;
 
- 
   try {
     user = await User.findOne({ phone: phone });
-  
   } catch (err) {
     return res.status(404).json({
       message: "User Not Found, Please Signup first",
       success: false,
     });
   }
- 
+
   if (user && phone == user.phone) {
     token = jwt.sign({ userId: user.id, userEmail: user.email }, "secret_key");
     req.session.token = token;
@@ -730,47 +728,6 @@ const userAnalyticsReportAdder = async (req, res) => {
   user.analytics = userAnalyticsReport;
   try {
     user.markModified("analytics");
-    await user.save();
-  } catch (error) {
-    return res.status(404).json({ message: "Something went wrong!" });
-  }
-  return res.status(200).json({ message: "Report Added" });
-};
-const userFinancialReportAdder = async (req, res) => {
-  const { userId, adminId, year, report } = req.body;
-  console.log(year);
-  
-  let user, admin;
-  try {
-    user = await User.findById(userId);
-    admin = await User.findById(adminId);
-    if (!user || !admin) {
-      throw new Error();
-    }
-  } catch (error) {
-    console.log(error);
-    return res.status(404).json({ message: "Something went wrong!" });
-  }
-  if (!admin.isAdmin) {
-    return res.status(400).json({ message: "you are not allowed." });
-  }
-  if (!report || !year) {
-    return res.status(400).json({ message: "plaese add report" });
-  }
-  let userFinanceReport = user.finacialReport;
-  if (userFinanceReport.length === 0) {
-    userFinanceReport = [
-      {
-        [year]: { ...report },
-      },
-    ];
-  } else {
-    userFinanceReport[0][year] = { ...report };
-  }
-
-  user.finacialReport = userFinanceReport;
-  try {
-    user.markModified("finacialReport");
     await user.save();
   } catch (error) {
     return res.status(404).json({ message: "Something went wrong!" });
@@ -1186,94 +1143,235 @@ exports.deleteExcelFile = async (req, res) => {
   return res.status(200).json({ message: "File deleted.", success: true });
 };
 
-
-
 const uploadExcelAndCalculate = async (req, res) => {
   try {
-    // Check file presence
-    if (!req.files || !req.files['excel'] || !req.files['excel'][0]) {
+    if (!req.files || !req.files["excel"] || !req.files["excel"][0]) {
       return res.status(400).json({ message: "Please upload an Excel file." });
     }
-    const filePath = req.files['excel'][0].path;
-    console.log("File path to read:", filePath);
-    console.log("File  to read:", req.files['excel'][0]);
 
-    // Read workbook
+    const { month, year } = req.body;
+    if (!month || !year) {
+      return res
+        .status(400)
+        .json({ message: "Please provide month and year." });
+    }
+
+    const filePath = req.files["excel"][0].path;
+
     const workbook = xlsx.readFile(filePath);
-    console.log("Workbook read successfully:", workbook);
-    
     const sheetName = workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
     const data = xlsx.utils.sheet_to_json(sheet);
-    console.log("Sheet data sample:", data[0]); // Log first row to see actual keys
 
-    // Month mapping
     const monthAbbrMap = {
-      Jan: "Jan", January: "Jan",
-      Feb: "Feb", February: "Feb",
-      Mar: "Mar", March: "Mar",
-      Apr: "Apr", April: "Apr",
-      May: "May",
-      Jun: "Jun", June: "Jun",
-      Jul: "Jul", July: "Jul",
-      Aug: "Aug", August: "Aug",
-      Sep: "Sep", September: "Sep",
-      Oct: "Oct", October: "Oct",
-      Nov: "Nov", November: "Nov",
-      Dec: "Dec", December: "Dec"
+      jan: "Jan",
+      feb: "Feb",
+      mar: "Mar",
+      apr: "Apr",
+      may: "May",
+      jun: "Jun",
+      jul: "Jul",
+      aug: "Aug",
+      sep: "Sep",
+      oct: "Oct",
+      nov: "Nov",
+      dec: "Dec",
     };
 
-    const result = {};
+    const targetMonth = monthAbbrMap[month.toLowerCase()];
+    if (!targetMonth) {
+      return res.status(400).json({ message: "Invalid month provided." });
+    }
+
+    const labelWiseNetPayable = {};
 
     data.forEach((row) => {
-      // Try all possible header names
-      const label = row["label"] || row["Label"] || row["Label Name"];
-      const netPayableRaw = row["Net Payable"] || row["netPayable"] || row["NetPayable"];
-      const dateStr = row["dataset_date"] || row["Date"] || row["date"];
+      const label = (
+        row["label"] ||
+        row["Label"] ||
+        row["Label Name"] ||
+        ""
+      ).trim();
+      const dateStr = (
+        row["dataset_date"] ||
+        row["Date"] ||
+        row["date"] ||
+        ""
+      ).trim();
+      const netPayableRaw =
+        row["Net Payable"] || row["netPayable"] || row["NetPayable"];
 
       if (!label || !dateStr) return;
 
-      const netPayable = Number.isFinite(parseFloat(netPayableRaw)) ? parseFloat(netPayableRaw) : 0;
+      const netPayable = parseFloat(netPayableRaw) || 0;
 
-      // Parse date string
       const [monthPart, yearPart] = dateStr.split("-");
-      const monthKey = monthAbbrMap[monthPart.trim()] || monthPart.trim().slice(0, 3);
+      const monthKey =
+        monthAbbrMap[monthPart.trim().slice(0, 3).toLowerCase()] ||
+        monthPart.trim().slice(0, 3);
+      let parsedYear = parseInt(yearPart);
 
-      let year = parseInt(yearPart);
-      if (yearPart && yearPart.length === 2) {
-        year += year >= 50 ? 1900 : 2000;
+      if (yearPart.length === 2) {
+        parsedYear += parsedYear >= 50 ? 1900 : 2000;
       }
 
-      if (!result[label]) {
-        result[label] = {};
+      if (
+        isNaN(parsedYear) ||
+        monthKey !== targetMonth ||
+        parsedYear !== parseInt(year)
+      ) {
+        return;
       }
 
-      if (!result[label][year]) {
-        result[label][year] = {
-          Jan: 0, Feb: 0, Mar: 0, Apr: 0, May: 0, Jun: 0,
-          Jul: 0, Aug: 0, Sep: 0, Oct: 0, Nov: 0, Dec: 0
+      if (!labelWiseNetPayable[label]) {
+        labelWiseNetPayable[label] = 0;
+      }
+
+      labelWiseNetPayable[label] += netPayable;
+    });
+
+    // Round amounts to two decimal places
+    Object.keys(labelWiseNetPayable).forEach((label) => {
+      labelWiseNetPayable[label] = parseFloat(
+        labelWiseNetPayable[label].toFixed(2)
+      );
+    });
+    res.status(200).json({
+      message: `Net Payable grouped by labels for ${targetMonth}-${year} calculated successfully.`,
+      data: labelWiseNetPayable,
+    });
+    for (const key in labelWiseNetPayable) {
+      let user = await User.findOne({ name: key });
+      if (!user) {
+        continue;
+      }
+      let userFinanceReport = user.finacialReport;
+      if (userFinanceReport.length === 0) {
+        userFinanceReport = [
+          {
+            [year]: {
+              Jan: 0,
+              Feb: 0,
+              Mar: 0,
+              Apr: 0,
+              May: 0,
+              Jun: 0,
+              Jul: 0,
+              Aug: 0,
+              Sep: 0,
+              Oct: 0,
+              Nov: 0,
+              Dec: 0,
+              month: month,
+              netPayable: labelWiseNetPayable[key],
+            },
+          },
+        ];
+      } else {
+        userFinanceReport[0][year] = {
+          ...userFinanceReport[0][year],
+
+          [month]: labelWiseNetPayable[key],
         };
       }
 
-      if (result[label][year][monthKey] !== undefined) {
-        result[label][year][monthKey] += netPayable;
-      } else {
-        console.warn(`Unknown month key: ${monthKey}, skipping.`);
+      user.finacialReport = userFinanceReport;
+      try {
+        user.markModified("finacialReport");
+        await user.save();
+      } catch (error) {
+        console.error(`Error saving financial report for ${key}:`, error);
       }
-    });
-
-    console.log("Parsed result:", result);
-
-    return res.status(200).json({
-      message: "Excel parsed and calculated successfully.",
-      data: result
-    });
+      console.log("1 saved", key);
+    }
+    return;
+    // return res.status(200).json({
+    //   message: `Net Payable grouped by labels for ${targetMonth}-${year} calculated successfully.`,
+    //   data: labelWiseNetPayable,
+    // });
   } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Something went wrong while processing Excel." });
+    console.error("Error parsing Excel:", err);
+    return res
+      .status(500)
+      .json({ message: "Something went wrong while processing Excel." });
   }
 };
+const userFinancialReportAdder = async (req, res) => {
+  const { userId, adminId, year, report } = req.body;
+  console.log(year);
 
+  let user, admin;
+  try {
+    user = await User.findById(userId);
+    admin = await User.findById(adminId);
+    if (!user || !admin) {
+      throw new Error();
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({ message: "Something went wrong!" });
+  }
+  if (!admin.isAdmin) {
+    return res.status(400).json({ message: "you are not allowed." });
+  }
+  if (!report || !year) {
+    return res.status(400).json({ message: "please add report" });
+  }
+  let userFinanceReport = user.finacialReport;
+  if (userFinanceReport.length === 0) {
+    userFinanceReport = [
+      {
+        [year]: { ...report },
+      },
+    ];
+  } else {
+    userFinanceReport[0][year] = { ...report };
+  }
+
+  user.finacialReport = userFinanceReport;
+  try {
+    user.markModified("finacialReport");
+    await user.save();
+  } catch (error) {
+    return res.status(404).json({ message: "Something went wrong!" });
+  }
+  return res.status(200).json({ message: "Report Added" });
+};
+
+exports.getUserWalletdata = async (req, res) => {
+  const { id } = req.body;
+
+  let user;
+
+  try {
+    user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: "Something went wrong." });
+  }
+
+  // Calculate total earnings from financial report
+  let totalEarnings = 0;
+  const financialReport = user.finacialReport;
+
+  if (financialReport && financialReport.length > 0) {
+    financialReport.forEach((yearData) => {
+      Object.values(yearData).forEach((months) => {
+        Object.values(months).forEach((amount) => {
+          totalEarnings += amount;
+        });
+      });
+    });
+  }
+
+  return res.status(200).json({
+    wallet: user.wallet,
+    bonusWallet: user.bonus,
+    totalEarnings: parseFloat(totalEarnings), // Ensure two decimal places
+  });
+};
 
 exports.userRegistration = userRegistration;
 exports.userLogin = userLogin;
