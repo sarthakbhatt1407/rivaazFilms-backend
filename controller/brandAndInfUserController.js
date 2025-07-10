@@ -53,8 +53,10 @@ exports.userExists = async (req, res) => {
   return res.status(404).json({ message: "User not exists.", exists: false });
 };
 exports.userLogin = async (req, res) => {
+
+  
   const { contactNum } = req.body;
-  console.log(contactNum);
+
 
   let user, token;
   try {
@@ -75,12 +77,13 @@ exports.userLogin = async (req, res) => {
     { userId: user.id, contactNum: user.contactNum },
     "secret_key"
   );
+  console.log(user, 'hi');
+  
   return res.status(404).json({
     user: {
       name: user.name,
       id: user.id,
       contact: user.contactNum,
-
       userSince: user.userSince,
       token: token,
       userType: user.userType,
@@ -266,24 +269,6 @@ exports.getAllInfUsersWithInactive = async (req, res) => {
   });
 };
 
-exports.userLogin = async (req, res) => {
-  const { contactNum } = req.body;
-  console.log(contactNum);
-
-  let user, token;
-  try {
-    users = await infUser.find({ });
-  } catch (error) {}
-  users = users.filter(u=>{
-    return u.status =='active' || u.status =='closed'
-  })
-  return res.status(200).json({
-    users: users.map((u) => {
-      return u.toObject({ getters: true });
-    }),
-    status: true,
-  });
-};
 
 
 exports.getUserByUserID = async (req, res) => {

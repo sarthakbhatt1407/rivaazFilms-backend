@@ -56,8 +56,9 @@ app.use(
 );
 app.use("/user", authenticationRoute);
 app.use("/brand", brandroute);
-app.use("/inf", infroute);
 app.use("/inf/user", userRoute);
+app.use("/inf", infroute);
+
 app.use("/order", orders);
 app.use("/file", fileRoute);
 app.use("/copyright", copyrightRoute);
