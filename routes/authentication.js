@@ -54,5 +54,17 @@ router.post(
   fileUpload.fields([{ name: "userPic", maxCount: 1 }]),
   authController.editProfile
 );
+router.post(
+  "/get-wallet",
+  authController.getInfWalletdata // The controller to handle the request
+);
+router.post(
+  "/add-wallet",
+  authController.addwalletTransaction // The controller to handle the request
+);
+router.post(
+  "/delete-wallet",
+  authController.deleteWallletEntry // The controller to handle the request
+);
 
 module.exports = router;

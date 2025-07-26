@@ -22,6 +22,8 @@ const userSchema = mongoose.Schema({
   docs: { type: String },
   excelRep: { type: String },
   paidEarning: { type: Number, required: true },
+  wallet: { type: Array, default: [] },
+  bonus: { type: Array, default: [] },
 });
 
 module.exports = mongoose.model("User", userSchema);

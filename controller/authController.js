@@ -5,7 +5,7 @@ const xlsx = require("xlsx");
 const fs = require("fs");
 const { log } = require("console");
 // const fs = require("fs");
-
+const { v4: uuidv4 } = require("uuid");
 const transporter = nodemailer.createTransport({
   service: "Gmail",
   host: "smtp.gmail.com",
@@ -313,6 +313,8 @@ const userRegistration = async (req, res, next) => {
       pincode,
       docs: "",
       excelRep: "",
+      wallet: [],
+      bonus: [],
     });
     if (!validateEmail(email)) {
       return res.status(404).json({ message: "Invalid Email" });
@@ -1371,6 +1373,161 @@ exports.getUserWalletdata = async (req, res) => {
     bonusWallet: user.bonus,
     totalEarnings: parseFloat(totalEarnings), // Ensure two decimal places
   });
+};
+exports.getInfWalletdata = async (req, res) => {
+  const { id } = req.body;
+  let totalOrders,
+    completedOrders,
+    pendingOrders,
+    inProcess,
+    paidOrders,
+    user,
+    price;
+
+  try {
+    user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: "Something went wrong." });
+  }
+  return res.status(200).json({
+    wallet: user.wallet,
+    bonusWallet: user.bonus,
+  });
+};
+
+exports.addwalletTransaction = async (req, res) => {
+  const { remark, infId, amount, action } = req.body; // Get orderId from request parameters
+  console.log(remark, infId, amount, action, "hit");
+
+  let user;
+  try {
+    user = await User.findById(infId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+    if (action == "wallet") {
+      const now = new Date();
+      const date = now.toISOString().split("T")[0]; // Format: YYYY-MM-DD
+      const formatTime = (date) => {
+        let hours = date.getHours();
+        let minutes = date.getMinutes();
+        const ampm = hours >= 12 ? "PM" : "AM";
+        hours = hours % 12;
+        hours = hours ? hours : 12; // the hour '0' should be '12'
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        const strTime = hours + ":" + minutes + " " + ampm;
+        return strTime;
+      };
+
+      const time = formatTime(now);
+
+      const obj = {
+        id: uuidv4(),
+        date: date,
+        time: time,
+        description: remark,
+        amount: Number(amount),
+      };
+
+      let arr = [];
+
+      if (user.wallet == "" || user.wallet == undefined) {
+        arr = [obj];
+      } else {
+        arr = [obj, ...user.wallet];
+      }
+
+      user.wallet = [...arr];
+    }
+    if (action == "bonus") {
+      const now = new Date();
+      const date = now.toISOString().split("T")[0]; // Format: YYYY-MM-DD
+      const formatTime = (date) => {
+        let hours = date.getHours();
+        let minutes = date.getMinutes();
+        const ampm = hours >= 12 ? "PM" : "AM";
+        hours = hours % 12;
+        hours = hours ? hours : 12; // the hour '0' should be '12'
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        const strTime = hours + ":" + minutes + " " + ampm;
+        return strTime;
+      };
+
+      const time = formatTime(now);
+
+      const obj = {
+        id: uuidv4(),
+        date: date,
+        time: time,
+        description: "Bonus",
+        amount: Number(amount),
+      };
+      let arr = [];
+      if (user.bonus == "" || user.bonus == undefined) {
+        arr = [obj];
+      } else {
+        arr = [obj, ...user.bonus];
+      }
+      user.bonus = arr;
+    }
+    try {
+      user.markModified("wallet");
+      user.markModified("bonus");
+      await user.save();
+    } catch (error) {
+      return res.status(500).json({ message: "Failed to update wallet" });
+    }
+
+    return res.status(200).json({ message: "Wallet updated successfully." });
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).json({ message: "Something went wrong." });
+  }
+};
+
+exports.deleteWallletEntry = async (req, res) => {
+  const { id, action, infId } = req.body;
+  console.log(id, action, infId);
+
+  let user;
+  try {
+    user = await User.findById(infId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    if (action.toLowerCase() == "bonus") {
+      const obj = user.bonus.find((entry) => entry.id == id);
+      if (!obj) {
+        return res.status(404).json({ message: "Entry not found." });
+      }
+      let arr = user.bonus.filter((entry) => entry.id != id);
+      user.bonus = arr;
+    } else {
+      const obj = user.wallet.find((entry) => entry.id == id);
+      if (!obj) {
+        return res.status(404).json({ message: "Entry not found." });
+      }
+      let arr = user.wallet.filter((entry) => entry.id != id);
+      user.wallet = arr;
+    }
+    try {
+      await user.save();
+    } catch (error) {
+      return res.status(500).json({ message: "Failed to update wallet" });
+    }
+    return res.status(200).json({ message: "Wallet updated successfully." });
+  } catch (error) {
+    console.log(error);
+
+    return res.status(500).json({ message: "Something went wrong." });
+  }
 };
 
 exports.userRegistration = userRegistration;
