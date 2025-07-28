@@ -1376,13 +1376,7 @@ exports.getUserWalletdata = async (req, res) => {
 };
 exports.getInfWalletdata = async (req, res) => {
   const { id } = req.body;
-  let totalOrders,
-    completedOrders,
-    pendingOrders,
-    inProcess,
-    paidOrders,
-    user,
-    price;
+  let user;
 
   try {
     user = await User.findById(id);
@@ -1392,12 +1386,42 @@ exports.getInfWalletdata = async (req, res) => {
   } catch (error) {
     return res.status(500).json({ message: "Something went wrong." });
   }
+
+  // Total Earn from finacialReport
+  let totalEarn = 0;
+  if (user.finacialReport && user.finacialReport.length > 0) {
+    totalEarn = user.finacialReport.reduce((sum, yearObj) => {
+      return (
+        sum +
+        Object.values(yearObj).reduce((yearSum, monthsObj) => {
+          return (
+            yearSum +
+            Object.values(monthsObj)
+              .filter((v) => typeof v === "number")
+              .reduce((monthSum, val) => monthSum + val, 0)
+          );
+        }, 0)
+      );
+    }, 0);
+  }
+
+  // Total Paid from wallet
+  let totalPaid = 0;
+  if (Array.isArray(user.wallet)) {
+    totalPaid = user.wallet.reduce(
+      (sum, entry) => sum + Number(entry.amount || 0),
+      0
+    );
+  }
+
   return res.status(200).json({
     wallet: user.wallet,
     bonusWallet: user.bonus,
+    totalEarn: parseFloat(totalEarn.toFixed(2)),
+    totalPaid: parseFloat(totalPaid.toFixed(2)),
+    name: user.name,
   });
 };
-
 exports.addwalletTransaction = async (req, res) => {
   const { remark, infId, amount, action } = req.body; // Get orderId from request parameters
   console.log(remark, infId, amount, action, "hit");
