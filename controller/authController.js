@@ -1152,6 +1152,8 @@ const uploadExcelAndCalculate = async (req, res) => {
     }
 
     const { month, year } = req.body;
+    console.log(month, year);
+
     if (!month || !year) {
       return res
         .status(400)
@@ -1242,8 +1244,11 @@ const uploadExcelAndCalculate = async (req, res) => {
       message: `Net Payable grouped by labels for ${targetMonth}-${year} calculated successfully.`,
       data: labelWiseNetPayable,
     });
+    console.log(labelWiseNetPayable);
+
     for (const key in labelWiseNetPayable) {
       let user = await User.findOne({ name: key });
+
       if (!user) {
         continue;
       }
@@ -1264,8 +1269,7 @@ const uploadExcelAndCalculate = async (req, res) => {
               Oct: 0,
               Nov: 0,
               Dec: 0,
-              month: month,
-              netPayable: labelWiseNetPayable[key],
+              [month]: labelWiseNetPayable[key],
             },
           },
         ];
@@ -1284,6 +1288,9 @@ const uploadExcelAndCalculate = async (req, res) => {
       } catch (error) {
         console.error(`Error saving financial report for ${key}:`, error);
       }
+      if (key == "Gusain Raj Studio") {
+        console.log(labelWiseNetPayable[key]);
+      }
       console.log("1 saved", key);
     }
     return;
@@ -1298,6 +1305,7 @@ const uploadExcelAndCalculate = async (req, res) => {
       .json({ message: "Something went wrong while processing Excel." });
   }
 };
+
 const userFinancialReportAdder = async (req, res) => {
   const { userId, adminId, year, report } = req.body;
   console.log(year);
