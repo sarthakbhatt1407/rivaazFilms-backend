@@ -1420,6 +1420,7 @@ exports.getInfWalletdata = async (req, res) => {
     totalEarn: parseFloat(totalEarn.toFixed(2)),
     totalPaid: parseFloat(totalPaid.toFixed(2)),
     name: user.name,
+    img: user.userPic,
   });
 };
 exports.addwalletTransaction = async (req, res) => {
