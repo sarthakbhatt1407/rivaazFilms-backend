@@ -1,6 +1,7 @@
 const Order = require("../models/orderModel");
 const { v4: uuidv4 } = require("uuid");
 const User = require("../models/user");
+const Artist = require("../models/artist");
 
 const cloudinary = require("cloudinary");
 
@@ -23,10 +24,10 @@ const transporter = nodemailer.createTransport({
     pass: process.env.SMPT_PASS,
   },
 });
-  // sendSongLiveEmailToUser({email:'sarthakbhatt1407@gmail.com'},{});
+// sendSongLiveEmailToUser({email:'sarthakbhatt1407@gmail.com'},{});
 function sendSongLiveEmailToUser(user, order) {
   console.log("Sending song live email to user:", user, order);
-  
+
   if (!user.email) return;
   const mailOptions = {
     from: process.env.SMPT_EMAIL,
@@ -43,7 +44,9 @@ function sendSongLiveEmailToUser(user, order) {
             Hello <b>${user.name || "User"}</b>,
           </p>
           <p style="font-size: 16px; color: #444;">
-            Congratulations! Your song <b>${order.title}</b> is now live on Rivaaz Films.
+            Congratulations! Your song <b>${
+              order.title
+            }</b> is now live on Rivaaz Films.
           </p>
           <div style="background: #f1f5fb; border-radius: 6px; padding: 16px; margin: 16px 0;">
             <b>Label:</b> ${order.labelName || ""}<br/>
@@ -130,6 +133,13 @@ const dateFetcher = () => {
 
   //   return { date: [year, months[month - 1], day], time: time };
 };
+function capitalizeName(name) {
+  if (!name) return "";
+  return name
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
 
 const orderCreator = async (req, res) => {
   const {
@@ -233,7 +243,6 @@ const orderCreator = async (req, res) => {
     subgenre,
   });
 
-
   try {
     await createdOrder.save();
   } catch (error) {
@@ -243,9 +252,154 @@ const orderCreator = async (req, res) => {
 
     return res.status(400).json({ message: "Unable to create order" });
   }
+  let createdSinger,
+    createdComposer,
+    createdLyricist,
+    createdDirector,
+    createdProducer,
+    createdMusicDirector;
+  createdSinger = await Artist.findOne({ name: capitalizeName(singer) });
+  if (!createdSinger) {
+    createdSinger = new Artist({
+      name: capitalizeName(singer),
+      role: "singer",
+      appleId: singerAppleId,
+      spotifyId: singerSpotifyId,
+      facebookUrl: singerFacebookUrl,
+      instagramUrl: singerInstagramUrl,
+    });
+    await createdSinger.save();
+  } else {
+    createdSinger.appleId = singerAppleId;
+    createdSinger.spotifyId = singerSpotifyId;
+    createdSinger.facebookUrl = singerFacebookUrl;
+    createdSinger.instagramUrl = singerInstagramUrl;
+    await createdSinger.save();
+  }
+  if (composer.length > 0) {
+    createdComposer = await Artist.findOne({ name: capitalizeName(composer) });
+    if (!createdComposer) {
+      createdComposer = new Artist({
+        name: capitalizeName(composer),
+        appleId: composerAppleId,
+        spotifyId: composerSpotifyId,
+        facebookUrl: composerFacebookUrl,
+        instagramUrl: composerInstagramUrl,
+        role: "composer",
+      });
+      await createdComposer.save();
+    } else {
+      createdComposer.appleId = composerAppleId;
+      createdComposer.spotifyId = composerSpotifyId;
+      createdComposer.facebookUrl = composerFacebookUrl;
+      createdComposer.instagramUrl = composerInstagramUrl;
+      await createdComposer.save();
+    }
+  }
+  if (lyricist.length > 0) {
+    createdLyricist = await Artist.findOne({ name: capitalizeName(lyricist) });
+    if (!createdLyricist) {
+      createdLyricist = new Artist({
+        name: capitalizeName(lyricist),
+        appleId: lyricistAppleId,
+        spotifyId: lyricistSpotifyId,
+        facebookUrl: lyricistFacebookUrl,
+        instagramUrl: lyricistInstagramUrl,
+        role: "lyricist",
+      });
+      await createdLyricist.save();
+    } else {
+      createdLyricist.appleId = lyricistAppleId;
+      createdLyricist.spotifyId = lyricistSpotifyId;
+      createdLyricist.facebookUrl = lyricistFacebookUrl;
+      createdLyricist.instagramUrl = lyricistInstagramUrl;
+      await createdLyricist.save();
+    }
+  }
+  if (director.length > 0) {
+    createdDirector = await Artist.findOne({ name: capitalizeName(director) });
+    if (!createdDirector) {
+      createdDirector = new Artist({
+        name: capitalizeName(director),
+        appleId: "",
+        spotifyId: "",
+        facebookUrl: "",
+        instagramUrl: "",
+        role: "lyricist",
+      });
+      await createdDirector.save();
+    } else {
+      createdDirector.appleId = "";
+      createdDirector.spotifyId = "";
+      createdDirector.facebookUrl = "";
+      createdDirector.instagramUrl = "";
+      await createdDirector.save();
+    }
+  }
+  if (producer.length > 0) {
+    createdProducer = await Artist.findOne({ name: capitalizeName(producer) });
+    if (!createdProducer) {
+      createdProducer = new Artist({
+        name: capitalizeName(producer),
+        appleId: "",
+        spotifyId: "",
+        facebookUrl: "",
+        instagramUrl: "",
+        role: "producer",
+      });
+      await createdProducer.save();
+    } else {
+      createdProducer.appleId = "";
+      createdProducer.spotifyId = "";
+      createdProducer.facebookUrl = "";
+      createdProducer.instagramUrl = "";
+      await createdProducer.save();
+    }
+  }
 
+  if (musicDirector.length > 0) {
+    createdMusicDirector = await Artist.findOne({
+      name: capitalizeName(musicDirector),
+    });
+
+    if (!createdMusicDirector) {
+      createdMusicDirector = new Artist({
+        name: capitalizeName(musicDirector),
+        appleId: "",
+        spotifyId: "",
+        facebookUrl: "",
+        instagramUrl: "",
+        role: "musicDirector",
+      });
+      await createdMusicDirector.save();
+    } else {
+      createdMusicDirector.appleId = "";
+      createdMusicDirector.spotifyId = "";
+      createdMusicDirector.facebookUrl = "";
+      createdMusicDirector.instagramUrl = "";
+      await createdMusicDirector.save();
+    }
+  }
 
   return res.status(200).json({ message: "Order created", createdOrder });
+};
+
+const getAllArtists = async (req, res) => {
+  let artists;
+  try {
+    artists = await Artist.find({});
+    if (!artists || artists.length === 0) {
+      throw new Error("No artists found");
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(404).json({ message: "No artists found" });
+  }
+  return res.status(200).json({
+    artists: artists.map((artist) => {
+      return artist.toObject({ getters: true });
+    }),
+  });
 };
 
 const addImage = async (req, res) => {
@@ -415,7 +569,6 @@ const editOrderById = async (req, res) => {
       order.remark = remark;
     }
     if (action === "completed") {
-     
       order.status = "completed";
       order.remark = "";
     }
@@ -472,7 +625,7 @@ const editOrderById = async (req, res) => {
     order.lyricist = lyricist;
     order.crbt = crbt;
     order.musicDirector = musicDirector;
-order.status ="waiting"
+    order.status = "waiting";
     order.file = file.path;
     order.thumbnail = thumbnail.path;
     order.singerAppleId = singerAppleId;
@@ -495,7 +648,6 @@ order.status ="waiting"
       order.releaseDate = releaseDate;
     }
     order.subgenre = subgenre;
-    
   }
 
   try {
@@ -509,7 +661,6 @@ order.status ="waiting"
     .status(200)
     .json({ message: "Order updated successfully", success: true });
 };
-
 
 const getAllOrders = async (req, res) => {
   const { userId } = req.query;
@@ -576,12 +727,12 @@ const addUPCISRT = async (req, res) => {
     order.markModified("status");
     order.markModified("dateLive");
     await order.save();
-     const orderUser = await User.findById(order.userId);
-      console.log("orderUser", orderUser);
-      
-       if (orderUser) {
-          sendSongLiveEmailToUser(orderUser, order);
-        }
+    const orderUser = await User.findById(order.userId);
+    console.log("orderUser", orderUser);
+
+    if (orderUser) {
+      sendSongLiveEmailToUser(orderUser, order);
+    }
   } catch (error) {
     return res.status(400).json({ message: "Something went wrong" });
   }
@@ -595,3 +746,4 @@ exports.editOrderById = editOrderById;
 exports.getAllOrders = getAllOrders;
 exports.addImage = addImage;
 exports.addUPCISRT = addUPCISRT;
+exports.getAllArtists = getAllArtists;

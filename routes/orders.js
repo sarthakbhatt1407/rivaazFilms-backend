@@ -19,6 +19,7 @@ router.post(
 );
 
 router.get("/get-order", orderController.getOrderByOrderId);
+router.get("/get-all-artists", orderController.getAllArtists);
 router.post("/add-upc-isrc", orderController.addUPCISRT);
 router.get("/get-all-orders", orderController.getAllOrders);
 
