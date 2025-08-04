@@ -39,5 +39,9 @@ router.patch(
   ]),
   orderController.editOrderById
 );
+router.post("/artist", orderController.addArtist);
+router.post("/send-otp", orderController.sentOtpForDelete);
+router.put("/artist/:id", orderController.editArtistById);
+router.delete("/artist/:id", orderController.deleteArtistById);
 
 module.exports = router;

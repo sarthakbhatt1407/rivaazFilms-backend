@@ -582,29 +582,25 @@ const editOrderById = async (req, res) => {
   let file, thumbnail;
 
   if (action === "edit") {
-    if (!req.files) {
-      return res.status(400).json({ message: "Please upload files!" });
+    // Only check for files if at least one is being uploaded
+    if (req.files && req.files.file && req.files.file[0]) {
+      file = req.files.file[0];
+      if (order.file) {
+        fs.unlink(order.file, (err) => {
+          if (err) console.log(err);
+        });
+      }
+      order.file = file.path;
     }
-    if (!req.files.file[0]) {
-      return res.status(400).json({ message: "Please upload file!" });
+    if (req.files && req.files.thumbnail && req.files.thumbnail[0]) {
+      thumbnail = req.files.thumbnail[0];
+      if (order.thumbnail) {
+        fs.unlink(order.thumbnail, (err) => {
+          if (err) console.log(err);
+        });
+      }
+      order.thumbnail = thumbnail.path;
     }
-    if (!req.files.thumbnail[0]) {
-      return res.status(400).json({ message: "Please upload thumbnail!" });
-    }
-
-    file = req.files.file[0];
-    thumbnail = req.files.thumbnail[0];
-
-    fs.unlink(order.file, (err) => {
-      console.log(err);
-    });
-    fs.unlink(order.thumbnail, (err) => {});
-    // if (!order.thumbnail.toString().includes("cloudinary")) {
-    //   console.log("file removed!");
-    //   fs.unlink(order.thumbnail, (err) => {});
-    // } else {
-    //   console.log("file not found!");
-    // }
 
     order.labelName = labelName;
     order.title = title;
@@ -626,8 +622,6 @@ const editOrderById = async (req, res) => {
     order.crbt = crbt;
     order.musicDirector = musicDirector;
     order.status = "waiting";
-    order.file = file.path;
-    order.thumbnail = thumbnail.path;
     order.singerAppleId = singerAppleId;
     order.singerSpotifyId = singerSpotifyId;
     order.singerFacebookUrl = singerFacebookUrl;
@@ -739,6 +733,103 @@ const addUPCISRT = async (req, res) => {
   return res.status(200).json({ message: "Order Updated Successfully", order });
 };
 
+// Add a new artist
+const addArtist = async (req, res) => {
+  try {
+    const { name, appleId, spotifyId, facebookUrl, instagramUrl, role } =
+      req.body;
+    if (!name) {
+      return res.status(400).json({ message: "Artist name is required." });
+    }
+    const artist = new Artist({
+      name: capitalizeName(name),
+      appleId,
+      spotifyId,
+      facebookUrl,
+      instagramUrl,
+      role,
+    });
+    await artist.save();
+    return res
+      .status(201)
+      .json({ message: "Artist added successfully.", artist });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to add artist." });
+  }
+};
+
+// Edit an artist by ID
+const editArtistById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, appleId, spotifyId, facebookUrl, instagramUrl, role } =
+      req.body;
+    const artist = await Artist.findById(id);
+    if (!artist) {
+      return res.status(404).json({ message: "Artist not found." });
+    }
+    if (name) artist.name = capitalizeName(name);
+    if (appleId !== undefined) artist.appleId = appleId;
+    if (spotifyId !== undefined) artist.spotifyId = spotifyId;
+    if (facebookUrl !== undefined) artist.facebookUrl = facebookUrl;
+    if (instagramUrl !== undefined) artist.instagramUrl = instagramUrl;
+
+    if (role !== undefined) artist.role = role;
+    await artist.save();
+    return res
+      .status(200)
+      .json({ message: "Artist updated successfully.", artist });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to update artist." });
+  }
+};
+
+// Delete an artist by ID
+const deleteArtistById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const artist = await Artist.findByIdAndDelete(id);
+    if (!artist) {
+      return res.status(404).json({ message: "Artist not found." });
+    }
+    return res.status(200).json({ message: "Artist deleted successfully." });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to delete artist." });
+  }
+};
+exports.sentOtpForDelete = async (req, res) => {
+  const otp = Math.floor(100000 + Math.random() * 900000);
+  let info;
+  try {
+    info = await transporter.sendMail({
+      from: '"Rivaaz Films" inforivaazfilms@gmail.com', // sender address
+      to: `rivaazfilm@gmail.com`, // list of receivers
+      // to: `sarthakbhatt1407@gmail.com`, // list of receivers
+      subject: "Account Deletion Verification", // Subject line
+      text: `Your OTP is ${otp}`, // plain text body
+      html: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+        <p style="font-size: 16px;">Dear Admin,</p>
+        <p style="font-size: 16px;">You have requested to delete a account with Rivaaz Films. Please use the following OTP to verify your request:</p>
+        <div style="font-size: 24px; font-weight: bold; color: #4CAF50; text-align: center; margin: 20px 0;">${otp}</div>
+        <p style="font-size: 16px;">If you did not request this account deletion, please ignore this email.</p>
+        <p style="font-size: 16px;">Best regards,</p>
+        <p style="font-size: 16px;">Rivaaz Films Team</p>
+        <div style="text-align: center; margin-top: 20px;">
+          <a href="https://www.rivaazfilms.com" style="color: #4CAF50; text-decoration: none; font-size: 16px;">Visit our website</a>
+        </div>
+      </div>
+    `, // html body
+    });
+  } catch (error) {
+    return res.json({ info, message: "Unable to send", sent: false });
+  }
+  return res.json({ otp, message: "Sent", sent: true });
+};
+
+exports.addArtist = addArtist;
+exports.editArtistById = editArtistById;
+exports.deleteArtistById = deleteArtistById;
 exports.orderCreator = orderCreator;
 exports.getOrderByOrderId = getOrderByOrderId;
 exports.getOrderByUser = getOrderByUser;
