@@ -16,7 +16,10 @@ router.post(
 router.post("/login", brandAndInfUserController.userLogin);
 router.post("/chat", brandAndInfUserController.brandAndAdminChat);
 router.get("/get-all-inf", brandAndInfUserController.getAllInfUsers);
-router.get("/get-all-inf-inc", brandAndInfUserController.getAllInfUsersWithInactive);
+router.get(
+  "/get-all-inf-inc",
+  brandAndInfUserController.getAllInfUsersWithInactive
+);
 router.post("/get-chats", brandAndInfUserController.getBrandAndAdminChat);
 router.post("/get-user-pro", brandAndInfUserController.getProfilePro);
 router.post("/get-user-inf", brandAndInfUserController.getProfileInf);
@@ -36,10 +39,7 @@ router.post(
 );
 router.get("/send-otp-for-delete", brandAndInfUserController.sentOtpForDelete);
 router.post("/delete-user", brandAndInfUserController.deleteUserBrandAndUser);
-router.get(
-  "/get-all-users",
-  brandAndInfUserController.getAllUsers
-);
+router.get("/get-all-users", brandAndInfUserController.getAllUsers);
 
 router.post(
   "/legal-doc",

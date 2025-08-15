@@ -66,5 +66,13 @@ router.post(
   "/delete-wallet",
   authController.deleteWallletEntry // The controller to handle the request
 );
+router.post(
+  "/req-payment",
+  authController.sendPaymentRequestToAdmin // The controller to handle the request
+);
+router.get(
+  "/get-report/:labelName/:month/:year",
+  authController.downloadLabelReport // The controller to handle the request
+);
 
 module.exports = router;

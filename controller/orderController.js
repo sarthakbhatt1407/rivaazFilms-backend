@@ -252,134 +252,134 @@ const orderCreator = async (req, res) => {
 
     return res.status(400).json({ message: "Unable to create order" });
   }
-  let createdSinger,
-    createdComposer,
-    createdLyricist,
-    createdDirector,
-    createdProducer,
-    createdMusicDirector;
-  createdSinger = await Artist.findOne({ name: capitalizeName(singer) });
-  if (!createdSinger) {
-    createdSinger = new Artist({
-      name: capitalizeName(singer),
-      role: "singer",
-      appleId: singerAppleId,
-      spotifyId: singerSpotifyId,
-      facebookUrl: singerFacebookUrl,
-      instagramUrl: singerInstagramUrl,
-    });
-    await createdSinger.save();
-  } else {
-    createdSinger.appleId = singerAppleId;
-    createdSinger.spotifyId = singerSpotifyId;
-    createdSinger.facebookUrl = singerFacebookUrl;
-    createdSinger.instagramUrl = singerInstagramUrl;
-    await createdSinger.save();
-  }
-  if (composer.length > 0) {
-    createdComposer = await Artist.findOne({ name: capitalizeName(composer) });
-    if (!createdComposer) {
-      createdComposer = new Artist({
-        name: capitalizeName(composer),
-        appleId: composerAppleId,
-        spotifyId: composerSpotifyId,
-        facebookUrl: composerFacebookUrl,
-        instagramUrl: composerInstagramUrl,
-        role: "composer",
-      });
-      await createdComposer.save();
-    } else {
-      createdComposer.appleId = composerAppleId;
-      createdComposer.spotifyId = composerSpotifyId;
-      createdComposer.facebookUrl = composerFacebookUrl;
-      createdComposer.instagramUrl = composerInstagramUrl;
-      await createdComposer.save();
-    }
-  }
-  if (lyricist.length > 0) {
-    createdLyricist = await Artist.findOne({ name: capitalizeName(lyricist) });
-    if (!createdLyricist) {
-      createdLyricist = new Artist({
-        name: capitalizeName(lyricist),
-        appleId: lyricistAppleId,
-        spotifyId: lyricistSpotifyId,
-        facebookUrl: lyricistFacebookUrl,
-        instagramUrl: lyricistInstagramUrl,
-        role: "lyricist",
-      });
-      await createdLyricist.save();
-    } else {
-      createdLyricist.appleId = lyricistAppleId;
-      createdLyricist.spotifyId = lyricistSpotifyId;
-      createdLyricist.facebookUrl = lyricistFacebookUrl;
-      createdLyricist.instagramUrl = lyricistInstagramUrl;
-      await createdLyricist.save();
-    }
-  }
-  if (director.length > 0) {
-    createdDirector = await Artist.findOne({ name: capitalizeName(director) });
-    if (!createdDirector) {
-      createdDirector = new Artist({
-        name: capitalizeName(director),
-        appleId: "",
-        spotifyId: "",
-        facebookUrl: "",
-        instagramUrl: "",
-        role: "lyricist",
-      });
-      await createdDirector.save();
-    } else {
-      createdDirector.appleId = "";
-      createdDirector.spotifyId = "";
-      createdDirector.facebookUrl = "";
-      createdDirector.instagramUrl = "";
-      await createdDirector.save();
-    }
-  }
-  if (producer.length > 0) {
-    createdProducer = await Artist.findOne({ name: capitalizeName(producer) });
-    if (!createdProducer) {
-      createdProducer = new Artist({
-        name: capitalizeName(producer),
-        appleId: "",
-        spotifyId: "",
-        facebookUrl: "",
-        instagramUrl: "",
-        role: "producer",
-      });
-      await createdProducer.save();
-    } else {
-      createdProducer.appleId = "";
-      createdProducer.spotifyId = "";
-      createdProducer.facebookUrl = "";
-      createdProducer.instagramUrl = "";
-      await createdProducer.save();
-    }
-  }
+  // let createdSinger,
+  //   createdComposer,
+  //   createdLyricist,
+  //   createdDirector,
+  //   createdProducer,
+  //   createdMusicDirector;
+  // createdSinger = await Artist.findOne({ name: capitalizeName(singer) });
+  // if (!createdSinger) {
+  //   createdSinger = new Artist({
+  //     name: capitalizeName(singer),
+  //     role: "singer",
+  //     appleId: singerAppleId,
+  //     spotifyId: singerSpotifyId,
+  //     facebookUrl: singerFacebookUrl,
+  //     instagramUrl: singerInstagramUrl,
+  //   });
+  //   await createdSinger.save();
+  // } else {
+  //   createdSinger.appleId = singerAppleId;
+  //   createdSinger.spotifyId = singerSpotifyId;
+  //   createdSinger.facebookUrl = singerFacebookUrl;
+  //   createdSinger.instagramUrl = singerInstagramUrl;
+  //   await createdSinger.save();
+  // }
+  // if (composer.length > 0) {
+  //   createdComposer = await Artist.findOne({ name: capitalizeName(composer) });
+  //   if (!createdComposer) {
+  //     createdComposer = new Artist({
+  //       name: capitalizeName(composer),
+  //       appleId: composerAppleId,
+  //       spotifyId: composerSpotifyId,
+  //       facebookUrl: composerFacebookUrl,
+  //       instagramUrl: composerInstagramUrl,
+  //       role: "composer",
+  //     });
+  //     await createdComposer.save();
+  //   } else {
+  //     createdComposer.appleId = composerAppleId;
+  //     createdComposer.spotifyId = composerSpotifyId;
+  //     createdComposer.facebookUrl = composerFacebookUrl;
+  //     createdComposer.instagramUrl = composerInstagramUrl;
+  //     await createdComposer.save();
+  //   }
+  // }
+  // if (lyricist.length > 0) {
+  //   createdLyricist = await Artist.findOne({ name: capitalizeName(lyricist) });
+  //   if (!createdLyricist) {
+  //     createdLyricist = new Artist({
+  //       name: capitalizeName(lyricist),
+  //       appleId: lyricistAppleId,
+  //       spotifyId: lyricistSpotifyId,
+  //       facebookUrl: lyricistFacebookUrl,
+  //       instagramUrl: lyricistInstagramUrl,
+  //       role: "lyricist",
+  //     });
+  //     await createdLyricist.save();
+  //   } else {
+  //     createdLyricist.appleId = lyricistAppleId;
+  //     createdLyricist.spotifyId = lyricistSpotifyId;
+  //     createdLyricist.facebookUrl = lyricistFacebookUrl;
+  //     createdLyricist.instagramUrl = lyricistInstagramUrl;
+  //     await createdLyricist.save();
+  //   }
+  // }
+  // if (director.length > 0) {
+  //   createdDirector = await Artist.findOne({ name: capitalizeName(director) });
+  //   if (!createdDirector) {
+  //     createdDirector = new Artist({
+  //       name: capitalizeName(director),
+  //       appleId: "",
+  //       spotifyId: "",
+  //       facebookUrl: "",
+  //       instagramUrl: "",
+  //       role: "lyricist",
+  //     });
+  //     await createdDirector.save();
+  //   } else {
+  //     createdDirector.appleId = "";
+  //     createdDirector.spotifyId = "";
+  //     createdDirector.facebookUrl = "";
+  //     createdDirector.instagramUrl = "";
+  //     await createdDirector.save();
+  //   }
+  // }
+  // if (producer.length > 0) {
+  //   createdProducer = await Artist.findOne({ name: capitalizeName(producer) });
+  //   if (!createdProducer) {
+  //     createdProducer = new Artist({
+  //       name: capitalizeName(producer),
+  //       appleId: "",
+  //       spotifyId: "",
+  //       facebookUrl: "",
+  //       instagramUrl: "",
+  //       role: "producer",
+  //     });
+  //     await createdProducer.save();
+  //   } else {
+  //     createdProducer.appleId = "";
+  //     createdProducer.spotifyId = "";
+  //     createdProducer.facebookUrl = "";
+  //     createdProducer.instagramUrl = "";
+  //     await createdProducer.save();
+  //   }
+  // }
 
-  if (musicDirector.length > 0) {
-    createdMusicDirector = await Artist.findOne({
-      name: capitalizeName(musicDirector),
-    });
+  // if (musicDirector.length > 0) {
+  //   createdMusicDirector = await Artist.findOne({
+  //     name: capitalizeName(musicDirector),
+  //   });
 
-    if (!createdMusicDirector) {
-      createdMusicDirector = new Artist({
-        name: capitalizeName(musicDirector),
-        appleId: "",
-        spotifyId: "",
-        facebookUrl: "",
-        instagramUrl: "",
-        role: "musicDirector",
-      });
-      await createdMusicDirector.save();
-    } else {
-      createdMusicDirector.appleId = "";
-      createdMusicDirector.spotifyId = "";
-      createdMusicDirector.facebookUrl = "";
-      createdMusicDirector.instagramUrl = "";
-      await createdMusicDirector.save();
-    }
-  }
+  //   if (!createdMusicDirector) {
+  //     createdMusicDirector = new Artist({
+  //       name: capitalizeName(musicDirector),
+  //       appleId: "",
+  //       spotifyId: "",
+  //       facebookUrl: "",
+  //       instagramUrl: "",
+  //       role: "musicDirector",
+  //     });
+  //     await createdMusicDirector.save();
+  //   } else {
+  //     createdMusicDirector.appleId = "";
+  //     createdMusicDirector.spotifyId = "";
+  //     createdMusicDirector.facebookUrl = "";
+  //     createdMusicDirector.instagramUrl = "";
+  //     await createdMusicDirector.save();
+  //   }
+  // }
 
   return res.status(200).json({ message: "Order created", createdOrder });
 };

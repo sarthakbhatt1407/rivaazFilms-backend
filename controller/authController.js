@@ -3,8 +3,8 @@ const jwt = require("jsonwebtoken");
 const nodemailer = require("nodemailer");
 const xlsx = require("xlsx");
 const fs = require("fs");
-const { log } = require("console");
-// const fs = require("fs");
+const path = require("path");
+
 const { v4: uuidv4 } = require("uuid");
 const transporter = nodemailer.createTransport({
   service: "Gmail",
@@ -1579,6 +1579,198 @@ exports.deleteWallletEntry = async (req, res) => {
     return res.status(500).json({ message: "Something went wrong." });
   }
 };
+
+const sendPaymentRequestToAdmin = async (req, res) => {
+  const { userId, amount, remark } = req.body;
+
+  if (!userId || !amount) {
+    return res
+      .status(400)
+      .json({ message: "User ID and amount are required." });
+  }
+
+  let user;
+  try {
+    user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: "Something went wrong." });
+  }
+
+  let info;
+  try {
+    info = await transporter.sendMail({
+      from: '"Rivaaz Films" <inforivaazfilms@gmail.com>',
+      // to: "sarthakbhatt1407@gmail.com",
+      to: `rivaazfilm@gmail.com`,
+      subject: "Payment Request from User",
+      html: `
+        <div style="font-family: Arial, sans-serif; background: #f9f9f9; padding: 24px;">
+          <div style="max-width: 500px; margin: auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 24px;">
+            <h2 style="color: #222;">Payment Request</h2>
+            <p style="font-size: 16px; color: #444;">
+              <b>User:</b> ${user.name} (${user.email})
+            </p>
+            <p style="font-size: 16px; color: #444;">
+              <b>Amount:</b> ₹${amount}
+            </p>
+            <p style="font-size: 16px; color: #444;">
+              <b>Remark:</b> ${remark || "No remark provided."}
+            </p>
+            <p style="font-size: 14px; color: #888;">
+              <b>User ID:</b> ${userId}
+            </p>
+          </div>
+        </div>
+      `,
+    });
+  } catch (error) {
+    return res.json({ info, message: "Unable to send", sent: false });
+  }
+
+  return res.json({
+    info,
+    message: "Payment request sent to admin.",
+    sent: true,
+  });
+};
+
+const downloadLabelReport = async (req, res) => {
+  const { labelName, month, year } = req.params;
+  console.log(labelName, month, year);
+
+  if (!labelName || !month || !year) {
+    return res
+      .status(400)
+      .json({ message: "Please provide labelName, month, and year." });
+  }
+
+  // Normalize month for folder and Excel parsing
+  const monthAbbrMap = {
+    january: "Jan",
+    jan: "Jan",
+    february: "Feb",
+    feb: "Feb",
+    march: "Mar",
+    mar: "Mar",
+    april: "Apr",
+    apr: "Apr",
+    may: "May",
+    june: "Jun",
+    jun: "Jun",
+    july: "Jul",
+    jul: "Jul",
+    august: "Aug",
+    aug: "Aug",
+    september: "Sep",
+    sep: "Sep",
+    october: "Oct",
+    oct: "Oct",
+    november: "Nov",
+    nov: "Nov",
+    december: "Dec",
+    dec: "Dec",
+  };
+
+  function normalizeMonth(month) {
+    if (!month) return "";
+    return (
+      monthAbbrMap[month.trim().toLowerCase()] ||
+      month.trim().slice(0, 3).charAt(0).toUpperCase() +
+        month.trim().slice(1, 3).toLowerCase()
+    );
+  }
+
+  function normalizeLabel(label) {
+    if (!label) return "";
+    return label.trim().toLowerCase().replace(/\s+/g, " ");
+  }
+
+  const targetMonth = normalizeMonth(month);
+
+  // Find the report file
+  const reportsFolder = path.join(__dirname, "../uploads/reports");
+  let reportFile;
+  try {
+    const files = fs.readdirSync(reportsFolder);
+    reportFile = files.find(
+      (f) =>
+        (f.endsWith(".xlsx") || f.endsWith(".xls") || f.endsWith(".csv")) &&
+        f.toLowerCase().includes(`${month.toLowerCase()}-${year}`)
+    );
+    if (!reportFile) throw new Error("No report found.");
+  } catch (err) {
+    return res
+      .status(404)
+      .json({ message: "Report file not found for given month/year." });
+  }
+  const filePath = path.join(reportsFolder, reportFile);
+  let workbook, sheet, data;
+  try {
+    workbook = xlsx.readFile(filePath);
+    const sheetName = workbook.SheetNames[0];
+    sheet = workbook.Sheets[sheetName];
+    data = xlsx.utils.sheet_to_json(sheet);
+  } catch (err) {
+    return res.status(500).json({ message: "Error reading Excel file." });
+  }
+
+  // Filter rows for label, month, year (robust label matching)
+  const filteredRows = data.filter((row) => {
+    const label = row["label"] || row["Label"] || row["Label Name"] || "";
+    const dateStr = row["dataset_date"] || row["Date"] || row["date"] || "";
+    if (!label || !dateStr) return false;
+    const [monthPart, yearPart] = dateStr.split("-");
+    const monthKey =
+      monthAbbrMap[monthPart.trim().toLowerCase()] ||
+      monthAbbrMap[monthPart.trim().slice(0, 3).toLowerCase()] ||
+      monthPart.trim().slice(0, 3);
+    let parsedYear = parseInt(yearPart);
+    if (yearPart && yearPart.length === 2) {
+      parsedYear += parsedYear >= 50 ? 1900 : 2000;
+    }
+    return (
+      normalizeLabel(label) === normalizeLabel(labelName) &&
+      monthKey === targetMonth &&
+      parsedYear === parseInt(year)
+    );
+  });
+  console.log(filteredRows);
+
+  if (filteredRows.length === 0) {
+    return res
+      .status(404)
+      .json({ message: "No data found for given label/month/year." });
+  }
+
+  // Create new Excel file with filtered data
+  const newWorkbook = xlsx.utils.book_new();
+  const newSheet = xlsx.utils.json_to_sheet(filteredRows);
+  xlsx.utils.book_append_sheet(newWorkbook, newSheet, "FilteredReport");
+
+  // Save to temp file
+  const tempFileName = `${labelName.replace(
+    /\s+/g,
+    "_"
+  )}_${targetMonth}_${year}_report.xlsx`;
+  const tempFilePath = path.join(__dirname, "../uploads/reports", tempFileName);
+  xlsx.writeFile(newWorkbook, tempFilePath);
+  res.download(tempFilePath, tempFileName, (err) => {
+    // Optionally delete temp file after download
+    fs.unlink(tempFilePath, () => {});
+  });
+
+  // Send file for download
+  res.download(tempFilePath, tempFileName, (err) => {
+    // Optionally delete temp file after download
+    fs.unlink(tempFilePath, () => {});
+  });
+};
+exports.downloadLabelReport = downloadLabelReport;
+
+exports.sendPaymentRequestToAdmin = sendPaymentRequestToAdmin;
 
 exports.userRegistration = userRegistration;
 exports.userLogin = userLogin;
