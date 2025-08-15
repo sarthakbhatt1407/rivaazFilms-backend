@@ -1745,26 +1745,19 @@ const downloadLabelReport = async (req, res) => {
       .json({ message: "No data found for given label/month/year." });
   }
 
-  // Create new Excel file with filtered data
-  const newWorkbook = xlsx.utils.book_new();
-  const newSheet = xlsx.utils.json_to_sheet(filteredRows);
-  xlsx.utils.book_append_sheet(newWorkbook, newSheet, "FilteredReport");
-
-  // Save to temp file
+  // Create CSV from filtered data
+  const csvData = xlsx.utils.sheet_to_csv(
+    xlsx.utils.json_to_sheet(filteredRows)
+  );
   const tempFileName = `${labelName.replace(
     /\s+/g,
     "_"
-  )}_${targetMonth}_${year}_report.xlsx`;
+  )}_${targetMonth}_${year}_report.csv`;
   const tempFilePath = path.join(__dirname, "../uploads/reports", tempFileName);
-  xlsx.writeFile(newWorkbook, tempFilePath);
-  res.download(tempFilePath, tempFileName, (err) => {
-    // Optionally delete temp file after download
-    fs.unlink(tempFilePath, () => {});
-  });
 
-  // Send file for download
+  fs.writeFileSync(tempFilePath, csvData);
+
   res.download(tempFilePath, tempFileName, (err) => {
-    // Optionally delete temp file after download
     fs.unlink(tempFilePath, () => {});
   });
 };
