@@ -180,6 +180,8 @@ const orderCreator = async (req, res) => {
     musicDirector,
     releaseDate,
     subgenre,
+    youtubeContentId,
+    youtubeMusic,
   } = req.body;
   if (!req.files) {
     return res.status(400).json({ message: "Please upload files!" });
@@ -193,6 +195,7 @@ const orderCreator = async (req, res) => {
 
   const file = req.files.file[0];
   const image = req.files.thumbnail[0];
+  console.log(musicDirector);
 
   const dateAndTime = dateFetcher();
   const createdOrder = new Order({
@@ -241,6 +244,8 @@ const orderCreator = async (req, res) => {
     dateLive: " ",
     releaseDate,
     subgenre,
+    youtubeContentId,
+    youtubeMusic,
   });
 
   try {
@@ -648,7 +653,7 @@ const editOrderById = async (req, res) => {
     await order.save();
   } catch (error) {
     console.log(error);
-    fs.unlink(file.path, (err) => {});
+
     return res.status(404).json({ message: "Unable to update order" });
   }
   return res

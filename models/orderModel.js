@@ -45,6 +45,8 @@ const orderSchema = mongoose.Schema({
   dateLive: { type: String },
   releaseDate: { type: String },
   subgenre: { type: String },
+  youtubeContentId: { type: String },
+  youtubeMusic: { type: String },
 });
 
 module.exports = mongoose.model("Order", orderSchema);

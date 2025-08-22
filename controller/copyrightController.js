@@ -91,6 +91,9 @@ const updateCopyrightQuery = async (req, res) => {
   if (action === "delete") {
     cQuery.deleted = true;
   }
+  if (action === "rejected") {
+    cQuery.status = "rejected";
+  }
   if (action === "resolved") {
     cQuery.status = "resolved";
   }
