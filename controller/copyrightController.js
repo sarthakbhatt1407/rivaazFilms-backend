@@ -67,6 +67,7 @@ const createNewCopyRight = async (req, res) => {
     phone: user.phone,
     deleted: false,
     status: "pending",
+    remark: "",
   });
 
   try {
@@ -78,7 +79,9 @@ const createNewCopyRight = async (req, res) => {
 };
 
 const updateCopyrightQuery = async (req, res) => {
-  const { id, action } = req.query;
+  const { id, action, remark } = req.query;
+  console.log(remark);
+
   let cQuery;
   try {
     cQuery = await Copyright.findById(id);
@@ -93,6 +96,7 @@ const updateCopyrightQuery = async (req, res) => {
   }
   if (action === "rejected") {
     cQuery.status = "rejected";
+    cQuery.remark = remark;
   }
   if (action === "resolved") {
     cQuery.status = "resolved";

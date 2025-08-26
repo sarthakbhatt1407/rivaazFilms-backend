@@ -8,6 +8,7 @@ const copyrightSchema = mongoose.Schema({
   userName: { type: String, required: true },
   phone: { type: String, required: true },
   status: { type: String, required: true },
+  remark: { type: String },
   deleted: { type: Boolean, required: true },
 });
 
