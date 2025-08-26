@@ -924,12 +924,9 @@ const verifyForgotPassOtp = async (req, res) => {
 };
 
 const editProfile = async (req, res) => {
-  const { userId, name, phone, channelUrl, userPic } = req.body;
+  const { userId, name, phone, channelUrl, email } = req.body;
 
   let user;
-  if (!req.files) {
-    return res.status(400).json({ message: "Please upload files!" });
-  }
   try {
     user = await User.findById(userId);
     if (!user) {
@@ -938,28 +935,29 @@ const editProfile = async (req, res) => {
   } catch (error) {
     return res.status(404).json({ message: "User not found!" });
   }
-  if (!req.files) {
-    return res.status(400).json({ message: "Please upload files!" });
+
+  // Only update userPic if a new file is uploaded
+  if (req.files && req.files.userPic && req.files.userPic[0]) {
+    fs.unlink(user.userPic, (err) => {});
+    const img = req.files.userPic[0];
+    user.userPic = img.path;
   }
-  if (!req.files.userPic[0]) {
-    return res.status(400).json({ message: "Please upload files!" });
-  }
-  fs.unlink(user.userPic, (err) => {});
-  const img = req.files.userPic[0];
 
   user.name = name;
   user.phone = phone;
   user.channelUrl = channelUrl;
-  user.userPic = img.path;
+  user.email = email;
+
   try {
     await user.save();
   } catch (error) {
-    fs.unlink(img, (err) => {});
+    if (req.files && req.files.userPic && req.files.userPic[0]) {
+      fs.unlink(req.files.userPic[0].path, (err) => {});
+    }
     return res.status(400).json({ message: "Something went wrong!" });
   }
   return res.status(200).json({ message: "Profile Updated." });
 };
-
 const addPaidEarning = async (req, res) => {
   const { userId, paid, adminId } = req.body;
   let user, admin;
