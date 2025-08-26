@@ -74,5 +74,6 @@ router.get(
   "/get-report/:labelName/:month/:year",
   authController.downloadLabelReport // The controller to handle the request
 );
+router.get("/admin/dashboard-stats", authController.getAdminDashboardStats);
 
 module.exports = router;

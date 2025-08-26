@@ -4,7 +4,8 @@ const nodemailer = require("nodemailer");
 const xlsx = require("xlsx");
 const fs = require("fs");
 const path = require("path");
-
+const Order = require("../models/orderModel");
+const Copyright = require("../models/copyright");
 const { v4: uuidv4 } = require("uuid");
 const transporter = nodemailer.createTransport({
   service: "Gmail",
@@ -34,6 +35,74 @@ const months = [
 
 let emailsOtp = [];
 let forgotPassOtp = [];
+
+exports.getAdminDashboardStats = async (req, res) => {
+  try {
+    // User stats
+    const totalUsers = await User.countDocuments({});
+    const pendingUsers = await User.countDocuments({ status: "pending" });
+    const activeUsers = await User.countDocuments({ status: "approved" });
+    const now = new Date();
+    const month = now.getMonth();
+    const year = now.getFullYear();
+    const newUsersThisMonth = await User.countDocuments({
+      userSince: { $regex: `${months[month]} ${year}` },
+    });
+
+    // Work stats
+    const totalWork = await Order.countDocuments({});
+    const pendingWork = await Order.countDocuments({
+      status: "waiting",
+      deleted: false,
+    });
+    const processingWork = await Order.countDocuments({ status: "processing" });
+    const completedWork = await Order.countDocuments({ status: "completed" });
+    const workThisMonth = await Order.countDocuments({
+      orderDateAndTime: {
+        $regex: `${year}-${String(month + 1).padStart(2, "0")}`,
+      },
+    });
+
+    // Copyright stats
+    const totalCopyright = await Copyright.countDocuments({});
+    const pendingCopyright = await Copyright.countDocuments({
+      status: "pending",
+      deleted: false,
+    });
+    const resolvedCopyright = await Copyright.countDocuments({
+      status: "resolved",
+      deleted: false,
+    });
+    const rejectedCopyright = await Copyright.countDocuments({
+      status: "rejected",
+      deleted: false,
+    });
+
+    res.status(200).json({
+      userStats: {
+        totalUsers,
+        pendingUsers,
+        activeUsers,
+        newUsersThisMonth,
+      },
+      workStats: {
+        totalWork,
+        pendingWork,
+        processingWork,
+        completedWork,
+        workThisMonth,
+      },
+      copyrightStats: {
+        totalCopyright,
+        pendingCopyright,
+        resolvedCopyright,
+        rejectedCopyright,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch dashboard stats." });
+  }
+};
 
 const validateEmail = (email) => {
   return String(email)
