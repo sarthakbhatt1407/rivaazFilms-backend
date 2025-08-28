@@ -27,7 +27,7 @@ function sendOrderEmailToInfluencers(idArr, brandOrder) {
       const influencer = await infUser.findById(id);
       if (influencer && influencer.email) {
         const mailOptions = {
-          from: process.env.SMPT_EMAIL,
+          from: `"Rivaaz Films" <info@rivaazfilms.com>`,
           to: influencer.email,
           subject: `🌟 New Order: ${brandOrder.campaignName}`,
           html: `
