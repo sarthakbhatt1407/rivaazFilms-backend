@@ -6,13 +6,12 @@ const jwt = require("jsonwebtoken");
 
 const nodemailer = require("nodemailer");
 const transporter = nodemailer.createTransport({
-  service: "Gmail",
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
+  secure: process.env.SMTP_PORT == 465, // true for 465, false for 587
   auth: {
-    user: process.env.SMPT_EMAIL,
-    pass: process.env.SMPT_PASS,
+    user: process.env.SMTP_EMAIL,
+    pass: process.env.SMTP_PASS,
   },
 });
 
@@ -53,10 +52,7 @@ exports.userExists = async (req, res) => {
   return res.status(404).json({ message: "User not exists.", exists: false });
 };
 exports.userLogin = async (req, res) => {
-
-  
   const { contactNum } = req.body;
-
 
   let user, token;
   try {
@@ -77,8 +73,8 @@ exports.userLogin = async (req, res) => {
     { userId: user.id, contactNum: user.contactNum },
     "secret_key"
   );
-  console.log(user, 'hi');
-  
+  console.log(user, "hi");
+
   return res.status(404).json({
     user: {
       name: user.name,
@@ -165,7 +161,7 @@ exports.userRegistrationInf = async (req, res, next) => {
     role,
     price,
     city,
-    state
+    state,
   } = req.body;
 
   console.log(contactNum);
@@ -206,7 +202,7 @@ exports.userRegistrationInf = async (req, res, next) => {
       ifscCode,
       bankName,
       profession,
-      bankAccountHolderName: '',
+      bankAccountHolderName: "",
       profileImage: userPicImg.path,
       status: "for admin approval",
       paymentStatus: "completed",
@@ -220,7 +216,7 @@ exports.userRegistrationInf = async (req, res, next) => {
       facebookUrl: " ",
       youtubeUrl: " ",
       tikTokUrl: " ",
-      spotifyUrl:" ",
+      spotifyUrl: " ",
       jioSaavnUrl: " ",
     });
 
@@ -256,11 +252,11 @@ exports.getAllInfUsers = async (req, res) => {
 exports.getAllInfUsersWithInactive = async (req, res) => {
   let users;
   try {
-    users = await infUser.find({ });
+    users = await infUser.find({});
   } catch (error) {}
-  users = users.filter(u=>{
-    return u.status =='active' || u.status =='closed'
-  })
+  users = users.filter((u) => {
+    return u.status == "active" || u.status == "closed";
+  });
   return res.status(200).json({
     users: users.map((u) => {
       return u.toObject({ getters: true });
@@ -268,8 +264,6 @@ exports.getAllInfUsersWithInactive = async (req, res) => {
     status: true,
   });
 };
-
-
 
 exports.getUserByUserID = async (req, res) => {
   const { id } = req.body;
@@ -471,9 +465,15 @@ exports.editInfUser = async (req, res) => {
     ifscCode,
     bankName,
     profession,
-    price,facebookUrl,youtubeUrl,tikTokUrl,spotifyUrl,jioSaavnUrl,bankAccountHolderName
+    price,
+    facebookUrl,
+    youtubeUrl,
+    tikTokUrl,
+    spotifyUrl,
+    jioSaavnUrl,
+    bankAccountHolderName,
   } = req.body;
- 
+
   console.log(id, name);
 
   let user;
@@ -503,7 +503,8 @@ exports.editInfUser = async (req, res) => {
     user.tikTokUrl = tikTokUrl.trim() || user.tikTokUrl;
     user.spotifyUrl = spotifyUrl.trim() || user.spotifyUrl;
     user.jioSaavnUrl = jioSaavnUrl.trim() || user.jioSaavnUrl;
-    user.bankAccountHolderName = bankAccountHolderName.trim() || user.bankAccountHolderName;
+    user.bankAccountHolderName =
+      bankAccountHolderName.trim() || user.bankAccountHolderName;
 
     // Handle profile image upload
     if (req.files && req.files["userPic"]) {
@@ -622,7 +623,7 @@ exports.sentOtpForDelete = async (req, res) => {
   let info;
   try {
     info = await transporter.sendMail({
-      from: '"Rivaaz Films" inforivaazfilms@gmail.com', // sender address
+      from: '"Rivaaz Films" <info@rivaazfilms.com>', // sender address
       to: `rivaazfilm@gmail.com`, // list of receivers
       subject: "Account Deletion Verification", // Subject line
       text: `Your OTP is ${otp}`, // plain text body

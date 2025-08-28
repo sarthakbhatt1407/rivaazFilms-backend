@@ -15,15 +15,15 @@ const fs = require("fs");
 const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
-  service: "Gmail",
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
+  secure: process.env.SMTP_PORT == 465, // true for 465, false for 587
   auth: {
-    user: process.env.SMPT_EMAIL,
-    pass: process.env.SMPT_PASS,
+    user: process.env.SMTP_EMAIL,
+    pass: process.env.SMTP_PASS,
   },
 });
+
 // sendSongLiveEmailToUser({email:'sarthakbhatt1407@gmail.com'},{});
 function sendSongLiveEmailToUser(user, order) {
   console.log("Sending song live email to user:", user, order);
@@ -807,7 +807,7 @@ exports.sentOtpForDelete = async (req, res) => {
   let info;
   try {
     info = await transporter.sendMail({
-      from: '"Rivaaz Films" inforivaazfilms@gmail.com', // sender address
+      from: '"Rivaaz Films" <info@rivaazfilms.com>', // sender address
       to: `rivaazfilm@gmail.com`, // list of receivers
       // to: `sarthakbhatt1407@gmail.com`, // list of receivers
       subject: "Account Deletion Verification", // Subject line

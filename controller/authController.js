@@ -8,13 +8,12 @@ const Order = require("../models/orderModel");
 const Copyright = require("../models/copyright");
 const { v4: uuidv4 } = require("uuid");
 const transporter = nodemailer.createTransport({
-  service: "Gmail",
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
+  secure: process.env.SMTP_PORT == 465, // true for 465, false for 587
   auth: {
-    user: process.env.SMPT_EMAIL,
-    pass: process.env.SMPT_PASS,
+    user: process.env.SMTP_EMAIL,
+    pass: process.env.SMTP_PASS,
   },
 });
 
@@ -35,7 +34,6 @@ const months = [
 
 let emailsOtp = [];
 let forgotPassOtp = [];
-
 
 exports.getAdminDashboardStats = async (req, res) => {
   try {
@@ -449,7 +447,7 @@ const sendEmailForOtp = async (req, res) => {
   let info;
   try {
     info = await transporter.sendMail({
-      from: '"Rivaaz Films" inforivaazfilms@gmail.com', // sender address
+      from: '"Rivaaz Films" <info@rivaazfilms.com>', // sender address
       to: `${email}`, // list of receivers
       subject: "Verification", // Subject line
       text: "Hello world?", // plain text body
@@ -954,7 +952,7 @@ const forgotPassOtpSender = async (req, res) => {
   let info;
   try {
     info = await transporter.sendMail({
-      from: '"Rivaaz Films" work.fusionavinya@gmail.com', // sender address
+      from: '"Rivaaz Films" <info@rivaazfilms.com>', // sender address
       to: `${email}`, // list of receivers
       subject: "Password reset", // Subject line
       text: "Hello world?", // plain text body

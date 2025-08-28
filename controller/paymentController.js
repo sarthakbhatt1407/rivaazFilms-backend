@@ -7,13 +7,12 @@ const infUser = require("../models/infuser");
 const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
-  service: "Gmail",
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
+  secure: process.env.SMTP_PORT == 465, // true for 465, false for 587
   auth: {
-    user: process.env.SMPT_EMAIL,
-    pass: process.env.SMPT_PASS,
+    user: process.env.SMTP_EMAIL,
+    pass: process.env.SMTP_PASS,
   },
 });
 
@@ -24,7 +23,7 @@ const razorpayInstance = new Razorpay({
 
 function sendOrderEmailToInfluencers(idArr, brandOrder) {
   console.log("Sending order email to influencers:", idArr, brandOrder);
-  
+
   idArr.forEach(async (id) => {
     try {
       const influencer = await infUser.findById(id);
@@ -124,7 +123,6 @@ const paymentVerifier = async (req, res) => {
       let idArr = brandOrder.selectedInfluencers.map(
         (influencer) => influencer.id
       );
- 
 
       for (const id of idArr) {
         let alreadyOrder = await InfOrder.findOne({
@@ -149,7 +147,7 @@ const paymentVerifier = async (req, res) => {
               return user.id === id;
             }).price,
             remark: " ",
-            screenshot: " "
+            screenshot: " ",
           });
           await createdNewInfOrder.save();
         } catch (error) {
@@ -161,7 +159,6 @@ const paymentVerifier = async (req, res) => {
       }
       sendOrderEmailToInfluencers(idArr, brandOrder);
     }
-   
 
     if (!brandOrder) {
       return res.status(404).json({ message: "Brand order not found." });
