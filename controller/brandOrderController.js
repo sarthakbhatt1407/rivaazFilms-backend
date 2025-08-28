@@ -10,20 +10,18 @@ const fs = require("fs");
 const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
-  service: "Gmail",
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
+  host: process.env.SMTP_HOST,
+  port: process.env.SMTP_PORT,
+  secure: process.env.SMTP_PORT == 465, // true for 465, false for 587
   auth: {
-    user: process.env.SMPT_EMAIL,
-    pass: process.env.SMPT_PASS,
+    user: process.env.SMTP_EMAIL,
+    pass: process.env.SMTP_PASS,
   },
 });
 
-
 function sendOrderEmailToInfluencers(idArr, brandOrder) {
   console.log("Sending order email to influencers:", idArr, brandOrder);
-  
+
   idArr.forEach(async (id) => {
     try {
       const influencer = await infUser.findById(id);
@@ -85,8 +83,9 @@ exports.createNewOrder = async (req, res) => {
     campaignUrl,
     userId,
     influencersAmount,
-    paymentAmount,noOfNonCre,
-    requirements
+    paymentAmount,
+    noOfNonCre,
+    requirements,
   } = req.body;
   const InfIdArrParsed = JSON.parse(infIdArr);
   let createdOrder;
@@ -132,10 +131,9 @@ exports.createNewOrder = async (req, res) => {
       influencersAmount,
       remark: "",
       noOfNonCre,
-      requirements
+      requirements,
     });
 
- 
     await createdOrder.save();
   } catch (error) {
     console.log(error);
@@ -333,7 +331,7 @@ exports.addInfFromOrder = async (req, res) => {
             return user.id === id;
           }).price,
           remark: " ",
-          screenshot:' '
+          screenshot: " ",
         });
         await cretedNewInfOrder.save();
       } catch (error) {
@@ -364,7 +362,12 @@ exports.addInfFromOrder = async (req, res) => {
 
 exports.getBrandHomeData = async (req, res) => {
   const { id } = req.body;
-  let totalOrders, completedOrders, pendingOrders, inProcess, paidOrders, rejectOrder;
+  let totalOrders,
+    completedOrders,
+    pendingOrders,
+    inProcess,
+    paidOrders,
+    rejectOrder;
   try {
     totalOrders = await BrandOrder.find({ userId: id });
     completedOrders = await BrandOrder.find({
@@ -401,7 +404,7 @@ exports.getInfHomeData = async (req, res) => {
     paidOrders,
     user,
     price,
-rejectOrder;
+    rejectOrder;
   try {
     totalOrders = await infOrder.find({ infId: id });
     completedOrders = await infOrder.find({
