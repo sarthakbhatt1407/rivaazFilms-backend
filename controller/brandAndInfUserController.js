@@ -503,8 +503,9 @@ exports.editInfUser = async (req, res) => {
     user.tikTokUrl = tikTokUrl.trim() || user.tikTokUrl;
     user.spotifyUrl = spotifyUrl.trim() || user.spotifyUrl;
     user.jioSaavnUrl = jioSaavnUrl.trim() || user.jioSaavnUrl;
-    user.bankAccountHolderName =
-      bankAccountHolderName.trim() || user.bankAccountHolderName;
+    user.bankAccountHolderName = bankAccountHolderName
+      ? bankAccountHolderName.trim()
+      : user.bankAccountHolderName;
 
     // Handle profile image upload
     if (req.files && req.files["userPic"]) {
