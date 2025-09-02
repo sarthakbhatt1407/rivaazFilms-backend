@@ -833,6 +833,10 @@ exports.sentOtpForDelete = async (req, res) => {
   }
   return res.json({ otp, message: "Sent", sent: true });
 };
+function capitalizeFirst(str) {
+  if (!str) return "";
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
 exports.exportOrderDetailsToExcel = async (req, res) => {
   const { id } = req.params;
 
@@ -888,8 +892,8 @@ exports.exportOrderDetailsToExcel = async (req, res) => {
       [
         order.crbt || "",
         order.title || "",
-        order.albumType || "",
-        order.albumType || "",
+        capitalizeFirst(order.albumType) || "",
+        capitalizeFirst(order.albumType) || "",
         order.language || "",
         order.genre || "",
         order.subgenre || "",
@@ -1012,8 +1016,8 @@ exports.exportAllCompletedOrdersToExcel = async (req, res) => {
       wsData.push([
         order.crbt || "",
         order.title || "",
-        order.albumType || "",
-        order.albumType || "",
+        capitalizeFirst(order.albumType) || "",
+        capitalizeFirst(order.albumType) || "",
         order.language || "",
         order.genre || "",
         order.subgenre || "",
