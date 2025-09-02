@@ -938,7 +938,7 @@ exports.exportOrderDetailsToExcel = async (req, res) => {
     if (!fs.existsSync(dirPath)) {
       fs.mkdirSync(dirPath, { recursive: true });
     }
-    const filename = `order_${id}_details.xlsx`;
+    const filename = `${order.title}.xlsx`;
     const filePath = path.join(dirPath, filename);
     xlsx.writeFile(wb, filePath);
 
