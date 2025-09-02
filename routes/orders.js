@@ -43,5 +43,10 @@ router.post("/artist", orderController.addArtist);
 router.post("/send-otp", orderController.sentOtpForDelete);
 router.put("/artist/:id", orderController.editArtistById);
 router.delete("/artist/:id", orderController.deleteArtistById);
+router.get(
+  "/get/export/:action",
+  orderController.exportAllCompletedOrdersToExcel
+);
+router.get("/export/:id", orderController.exportOrderDetailsToExcel);
 
 module.exports = router;

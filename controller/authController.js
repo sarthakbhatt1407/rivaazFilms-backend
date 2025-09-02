@@ -77,6 +77,44 @@ exports.getAdminDashboardStats = async (req, res) => {
       deleted: false,
     });
 
+    // Payment stats from users
+    const users = await User.find({});
+    let totalPayment = 0;
+    let totalPaid = 0;
+    let totalBonusPaid = 0;
+
+    users.forEach((user) => {
+      // Calculate total payment from financial report
+      if (user.finacialReport && user.finacialReport.length > 0) {
+        user.finacialReport.forEach((yearData) => {
+          Object.values(yearData).forEach((months) => {
+            Object.values(months).forEach((amount) => {
+              if (typeof amount === "number") totalPayment += amount;
+            });
+          });
+        });
+      }
+      // Calculate total paid from wallet
+      if (Array.isArray(user.wallet)) {
+        totalPaid += user.wallet.reduce(
+          (sum, entry) => sum + Number(entry.amount || 0),
+          0
+        );
+      }
+      // Calculate total bonus paid
+      if (Array.isArray(user.bonus)) {
+        totalBonusPaid += user.bonus.reduce(
+          (sum, entry) => sum + Number(entry.amount || 0),
+          0
+        );
+      }
+    });
+
+    // Balance remaining = total payment - total paid - total bonus paid
+    const balanceRem = parseFloat(
+      (totalPayment - totalPaid - totalBonusPaid).toFixed(2)
+    );
+
     res.status(200).json({
       userStats: {
         totalUsers,
@@ -96,6 +134,12 @@ exports.getAdminDashboardStats = async (req, res) => {
         pendingCopyright,
         resolvedCopyright,
         rejectedCopyright,
+      },
+      paymentStats: {
+        totalPayment: parseFloat(totalPayment.toFixed(2)),
+        totalPaid: parseFloat(totalPaid.toFixed(2)),
+        totalBonusPaid: parseFloat(totalBonusPaid.toFixed(2)),
+        balanceRem,
       },
     });
   } catch (error) {

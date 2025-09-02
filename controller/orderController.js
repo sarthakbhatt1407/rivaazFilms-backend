@@ -4,6 +4,8 @@ const User = require("../models/user");
 const Artist = require("../models/artist");
 
 const cloudinary = require("cloudinary");
+const xlsx = require("xlsx");
+const path = require("path");
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -830,6 +832,252 @@ exports.sentOtpForDelete = async (req, res) => {
     return res.json({ info, message: "Unable to send", sent: false });
   }
   return res.json({ otp, message: "Sent", sent: true });
+};
+exports.exportOrderDetailsToExcel = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const order = await Order.findById(id);
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Prepare data for Excel
+    const wsData = [
+      [
+        "CRBT CUTS",
+        "SONG",
+        "FILM/ALBUM",
+        "ALBUM CATEGORY",
+        "LANGUAGE",
+        "GENRE/ Category",
+        "Sub Category",
+        "Description",
+        "Physical File name",
+        "Physical artwork name",
+        "Track Duration",
+        "Track no.",
+        "UPC ID",
+        "DATE OF MOVIE RELEASE",
+        "DATE OF MUSIC RELEASE",
+        "GO LIVE DATE",
+        "DATE OF EXPIRY",
+        "Film Banner",
+        "Director",
+        "Producer",
+        "Star cast",
+        "ISRC",
+        "LABEL",
+        "IPRS Ownership (Yes/No) (Label)",
+        "IPI (Label)",
+        "Publisher",
+        "IPRS Ownership (Yes/No)",
+        "LYRICIST",
+        "IPI (LYRICIST)",
+        "IPRS member (Yes/No) (LYRICIST)",
+        "COMPOSER",
+        "IPRS member (Yes/No) (COMPOSER)",
+        "IPI (COMPOSR)",
+        "ARTIST1/ Singer",
+        "SOUND RECORDING RIGHTS",
+        "MUSICAL & LITERARY WORKS",
+        "PAY To Rights",
+        "Mood",
+        "Time",
+      ],
+      [
+        order.crbt || "",
+        order.title || "",
+        order.albumType || "",
+        order.albumType || "",
+        order.language || "",
+        order.genre || "",
+        order.subgenre || "",
+        order.description || "",
+        order.file ? path.basename(order.file) : "",
+        order.thumbnail ? path.basename(order.thumbnail) : "",
+        "", // Track Duration
+        "", // Track no.
+        order.upc || "",
+        order.dateOfRelease || "",
+        order.dateOfRelease || "",
+        order.dateLive || "",
+        "", // DATE OF EXPIRY
+        order.labelName || "",
+        order.director || "",
+        order.producer || "",
+        order.starCast || "",
+        order.isrc || "",
+        order.labelName || "",
+        "", // IPRS Ownership (Yes/No) (Label)
+        "", // IPI (Label)
+        "", // Publisher
+        "", // IPRS Ownership (Yes/No)
+        order.lyricist || "",
+        "", // IPI (LYRICIST)
+        "", // IPRS member (Yes/No) (LYRICIST)
+        order.composer || "",
+        "", // IPRS member (Yes/No) (COMPOSER)
+        "", // IPI (COMPOSR)
+        order.singer || "",
+        "", // SOUND RECORDING RIGHTS
+        "", // MUSICAL & LITERARY WORKS
+        "", // PAY To Rights
+        order.mood || "",
+        "", // Time
+      ],
+    ];
+
+    // Create workbook and worksheet
+    const wb = xlsx.utils.book_new();
+    const ws = xlsx.utils.aoa_to_sheet(wsData);
+    xlsx.utils.book_append_sheet(wb, ws, "Order Details");
+
+    // Save file to temp location
+    const dirPath = path.join(__dirname, "..", "uploads", "reports");
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true });
+    }
+    const filename = `order_${id}_details.xlsx`;
+    const filePath = path.join(dirPath, filename);
+    xlsx.writeFile(wb, filePath);
+
+    // Send file for download
+    res.download(filePath, filename, (err) => {
+      setTimeout(() => {
+        fs.unlink(filePath, () => {});
+      }, 1000);
+    });
+  } catch (error) {
+    console.error("Error exporting order details:", error);
+    return res.status(500).json({ message: "Failed to export order details" });
+  }
+};
+exports.exportAllCompletedOrdersToExcel = async (req, res) => {
+  const { action } = req.params;
+  try {
+    // Fetch all completed orders
+    const orders = await Order.find({ status: action, deleted: false });
+
+    if (!orders || orders.length === 0) {
+      return res.status(404).json({ message: "No completed orders found" });
+    }
+
+    // Prepare data for Excel
+    const headers = [
+      "CRBT CUTS",
+      "SONG",
+      "FILM/ALBUM",
+      "ALBUM CATEGORY",
+      "LANGUAGE",
+      "GENRE/ Category",
+      "Sub Category",
+      "Description",
+      "Physical File name",
+      "Physical artwork name",
+      "Track Duration",
+      "Track no.",
+      "UPC ID",
+      "DATE OF MOVIE RELEASE",
+      "DATE OF MUSIC RELEASE",
+      "GO LIVE DATE",
+      "DATE OF EXPIRY",
+      "Film Banner",
+      "Director",
+      "Producer",
+      "Star cast",
+      "ISRC",
+      "LABEL",
+      "IPRS Ownership (Yes/No) (Label)",
+      "IPI (Label)",
+      "Publisher",
+      "IPRS Ownership (Yes/No)",
+      "LYRICIST",
+      "IPI (LYRICIST)",
+      "IPRS member (Yes/No) (LYRICIST)",
+      "COMPOSER",
+      "IPRS member (Yes/No) (COMPOSER)",
+      "IPI (COMPOSR)",
+      "ARTIST1/ Singer",
+      "SOUND RECORDING RIGHTS",
+      "MUSICAL & LITERARY WORKS",
+      "PAY To Rights",
+      "Mood",
+      "Time",
+    ];
+
+    const wsData = [headers];
+
+    orders.forEach((order) => {
+      wsData.push([
+        order.crbt || "",
+        order.title || "",
+        order.albumType || "",
+        order.albumType || "",
+        order.language || "",
+        order.genre || "",
+        order.subgenre || "",
+        order.description || "",
+        order.file ? path.basename(order.file) : "",
+        order.thumbnail ? path.basename(order.thumbnail) : "",
+        "", // Track Duration
+        "", // Track no.
+        order.upc || "",
+        order.dateOfRelease || "",
+        order.dateOfRelease || "",
+        order.dateLive || "",
+        "", // DATE OF EXPIRY
+        order.labelName || "",
+        order.director || "",
+        order.producer || "",
+        order.starCast || "",
+        order.isrc || "",
+        order.labelName || "",
+        "", // IPRS Ownership (Yes/No) (Label)
+        "", // IPI (Label)
+        "", // Publisher
+        "", // IPRS Ownership (Yes/No)
+        order.lyricist || "",
+        "", // IPI (LYRICIST)
+        "", // IPRS member (Yes/No) (LYRICIST)
+        order.composer || "",
+        "", // IPRS member (Yes/No) (COMPOSER)
+        "", // IPI (COMPOSR)
+        order.singer || "",
+        "", // SOUND RECORDING RIGHTS
+        "", // MUSICAL & LITERARY WORKS
+        "", // PAY To Rights
+        order.mood || "",
+        "", // Time
+      ]);
+    });
+
+    // Create workbook and worksheet
+    const wb = xlsx.utils.book_new();
+    const ws = xlsx.utils.aoa_to_sheet(wsData);
+    xlsx.utils.book_append_sheet(wb, ws, "Completed Songs");
+
+    // Save file to temp location
+    const dirPath = path.join(__dirname, "..", "uploads", "reports");
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true });
+    }
+    const filename = `all_${action}_songs_${Date.now()}.xlsx`;
+    const filePath = path.join(dirPath, filename);
+    xlsx.writeFile(wb, filePath);
+
+    // Send file for download
+    res.download(filePath, filename, (err) => {
+      setTimeout(() => {
+        fs.unlink(filePath, () => {});
+      }, 1000);
+    });
+  } catch (error) {
+    console.error("Error exporting completed orders:", error);
+    return res
+      .status(500)
+      .json({ message: "Failed to export completed orders" });
+  }
 };
 
 exports.addArtist = addArtist;
