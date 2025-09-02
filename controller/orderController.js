@@ -837,6 +837,12 @@ function capitalizeFirst(str) {
   if (!str) return "";
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
+function formatDateMMDDYYYY(dateStr) {
+  if (!dateStr) return "";
+  const parts = dateStr.split("-");
+  if (parts.length !== 3) return dateStr;
+  return `${parts[1]}-${parts[2]}-${parts[0]}`;
+}
 exports.exportOrderDetailsToExcel = async (req, res) => {
   const { id } = req.params;
 
@@ -904,8 +910,8 @@ exports.exportOrderDetailsToExcel = async (req, res) => {
         "", // Track no.
         order.upc || "",
         "",
-        order.dateOfRelease || "",
-        order.dateOfRelease || "",
+        formatDateMMDDYYYY(order.releaseDate) || "",
+        formatDateMMDDYYYY(order.dateOfRelease) || "",
         "", // DATE OF EXPIRY
         "",
         order.director || "",
@@ -1028,8 +1034,8 @@ exports.exportAllCompletedOrdersToExcel = async (req, res) => {
         "", // Track no.
         order.upc || "",
         "",
-        order.dateOfRelease || "",
-        order.dateOfRelease || "",
+        formatDateMMDDYYYY(order.releaseDate) || "",
+        formatDateMMDDYYYY(order.dateOfRelease) || "",
         "", // DATE OF EXPIRY
         "",
         order.director || "",
