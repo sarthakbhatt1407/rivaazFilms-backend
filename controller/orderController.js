@@ -903,7 +903,7 @@ exports.exportOrderDetailsToExcel = async (req, res) => {
         order.dateOfRelease || "",
         order.dateOfRelease || "",
         "", // DATE OF EXPIRY
-        order.labelName || "",
+        "",
         order.director || "",
         order.producer || "",
         order.starCast || "",
@@ -911,7 +911,7 @@ exports.exportOrderDetailsToExcel = async (req, res) => {
         order.labelName || "",
         "", // IPRS Ownership (Yes/No) (Label)
         "", // IPI (Label)
-        "", // Publisher
+        order.labelName || "", // Publisher
         "", // IPRS Ownership (Yes/No)
         order.lyricist || "",
         "", // IPI (LYRICIST)
@@ -1027,7 +1027,7 @@ exports.exportAllCompletedOrdersToExcel = async (req, res) => {
         order.dateOfRelease || "",
         order.dateOfRelease || "",
         "", // DATE OF EXPIRY
-        order.labelName || "",
+        "",
         order.director || "",
         order.producer || "",
         order.starCast || "",
@@ -1035,7 +1035,7 @@ exports.exportAllCompletedOrdersToExcel = async (req, res) => {
         order.labelName || "",
         "", // IPRS Ownership (Yes/No) (Label)
         "", // IPI (Label)
-        "", // Publisher
+        order.labelName || "", // Publisher
         "", // IPRS Ownership (Yes/No)
         order.lyricist || "",
         "", // IPI (LYRICIST)
