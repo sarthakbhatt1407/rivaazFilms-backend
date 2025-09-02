@@ -894,14 +894,14 @@ exports.exportOrderDetailsToExcel = async (req, res) => {
         order.genre || "",
         order.subgenre || "",
         order.description || "",
-        order.file ? path.basename(order.file) : "",
-        order.thumbnail ? path.basename(order.thumbnail) : "",
+        order.title || "",
+        order.title || "",
         "", // Track Duration
         "", // Track no.
         order.upc || "",
+        "",
         order.dateOfRelease || "",
         order.dateOfRelease || "",
-        order.dateLive || "",
         "", // DATE OF EXPIRY
         order.labelName || "",
         order.director || "",
