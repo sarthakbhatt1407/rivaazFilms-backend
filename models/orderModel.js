@@ -13,6 +13,7 @@ const orderSchema = mongoose.Schema({
   orderDateAndTime: { type: String },
   file: { type: String },
   mood: { type: String },
+  contentType: { type: String },
   userId: { type: String },
   description: { type: String },
   singer: { type: String },

@@ -167,6 +167,7 @@ const orderCreator = async (req, res) => {
     lyricist,
     crbt,
     genre,
+    contentType,
     singerAppleId,
     singerSpotifyId,
     singerFacebookUrl,
@@ -227,6 +228,7 @@ const orderCreator = async (req, res) => {
     subLabel3,
     upc,
     isrc,
+    contentType,
     lyricist,
     musicDirector,
     crbt,
@@ -485,6 +487,7 @@ const editOrderById = async (req, res) => {
   console.log(action);
 
   const {
+    contentType,
     labelName,
     title,
     dateOfRelease,
@@ -626,6 +629,7 @@ const editOrderById = async (req, res) => {
     order.genre = genre;
     order.isrc = isrc;
     order.lyricist = lyricist;
+    order.contentType = contentType;
     order.crbt = crbt;
     order.musicDirector = musicDirector;
     order.status = "waiting";
@@ -896,16 +900,16 @@ exports.exportOrderDetailsToExcel = async (req, res) => {
         "Time",
       ],
       [
-        order.crbt || "",
-        order.title || "",
-        capitalizeFirst(order.albumType) || "",
+        order.title.trim() || "",
+        order.title.trim() || "",
+        order.title.trim() || "",
         capitalizeFirst(order.albumType) || "",
         order.language || "",
         order.genre || "",
         order.subgenre || "",
         order.description || "",
-        order.title || "",
-        order.title || "",
+        order.title.trim() || "",
+        order.title.trim() || "",
         "", // Track Duration
         "", // Track no.
         order.upc || "",
@@ -914,14 +918,14 @@ exports.exportOrderDetailsToExcel = async (req, res) => {
         formatDateMMDDYYYY(order.dateOfRelease) || "",
         "", // DATE OF EXPIRY
         "",
-        order.director || "",
+        order.musicDirector || "",
         order.producer || "",
         order.starCast || "",
         order.isrc || "",
-        order.labelName || "",
+        order.labelName.trim() || "",
         "", // IPRS Ownership (Yes/No) (Label)
         "", // IPI (Label)
-        order.labelName || "", // Publisher
+        order.labelName.trim() || "", // Publisher
         "", // IPRS Ownership (Yes/No)
         order.lyricist || "",
         "", // IPI (LYRICIST)
@@ -934,7 +938,7 @@ exports.exportOrderDetailsToExcel = async (req, res) => {
         "", // MUSICAL & LITERARY WORKS
         "", // PAY To Rights
         order.mood || "",
-        "", // Time
+        order.crbt || "", // Time
       ],
     ];
 
@@ -1020,16 +1024,16 @@ exports.exportAllCompletedOrdersToExcel = async (req, res) => {
 
     orders.forEach((order) => {
       wsData.push([
-        order.crbt || "",
-        order.title || "",
-        capitalizeFirst(order.albumType) || "",
+        order.title.trim() || "",
+        order.title.trim() || "",
+        order.title.trim() || "",
         capitalizeFirst(order.albumType) || "",
         order.language || "",
         order.genre || "",
         order.subgenre || "",
         order.description || "",
-        order.title || "",
-        order.title || "",
+        order.title.trim() || "",
+        order.title.trim() || "",
         "", // Track Duration
         "", // Track no.
         order.upc || "",
@@ -1038,14 +1042,14 @@ exports.exportAllCompletedOrdersToExcel = async (req, res) => {
         formatDateMMDDYYYY(order.dateOfRelease) || "",
         "", // DATE OF EXPIRY
         "",
-        order.director || "",
+        order.musicDirector || "",
         order.producer || "",
         order.starCast || "",
         order.isrc || "",
-        order.labelName || "",
+        order.labelName.trim() || "",
         "", // IPRS Ownership (Yes/No) (Label)
         "", // IPI (Label)
-        order.labelName || "", // Publisher
+        order.labelName.trim() || "", // Publisher
         "", // IPRS Ownership (Yes/No)
         order.lyricist || "",
         "", // IPI (LYRICIST)
@@ -1058,7 +1062,7 @@ exports.exportAllCompletedOrdersToExcel = async (req, res) => {
         "", // MUSICAL & LITERARY WORKS
         "", // PAY To Rights
         order.mood || "",
-        "", // Time
+        order.crbt || "", // Time
       ]);
     });
 
