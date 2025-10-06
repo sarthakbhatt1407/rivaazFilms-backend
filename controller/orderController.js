@@ -845,7 +845,7 @@ function formatDateMMDDYYYY(dateStr) {
   if (!dateStr) return "";
   const parts = dateStr.split("-");
   if (parts.length !== 3) return dateStr;
-  return `${parts[1]}-${parts[2]}-${parts[0]}`;
+  return `${parts[1]}/${parts[2]}/${parts[0]}`;
 }
 exports.exportOrderDetailsToExcel = async (req, res) => {
   const { id } = req.params;
