@@ -82,6 +82,7 @@ router.post(
 router.get("/send-otp-for-delete", brandAndInfUserController.sentOtpForDelete);
 router.post("/delete-user", brandAndInfUserController.deleteUserBrandAndUser);
 router.get("/get-all-users", brandAndInfUserController.getAllUsers);
+router.get("/get-all-inf-users", brandAndInfUserController.getAllInfUsers);
 
 router.post(
   "/legal-doc",

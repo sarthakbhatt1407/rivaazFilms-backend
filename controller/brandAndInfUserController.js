@@ -89,6 +89,50 @@ exports.userLogin = async (req, res) => {
   });
 };
 
+async function sendWelcomeEmail(user) {
+  console.log("sending welcome email", user);
+
+  if (!user || !user.email) {
+    throw new Error("Invalid user data for welcome email.");
+  }
+
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial; background:#f7f9fc; padding:24px;">
+      <div style="max-width:600px; margin:0 auto; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 2px 12px rgba(12,30,60,0.06);">
+        <div style="padding:20px; text-align:center; background:linear-gradient(90deg,#0b6cff 0%,#4f46e5 100%); color:#fff;">
+          <h1 style="margin:0; font-size:20px;">👋 Welcome to Rivaaz Films</h1>
+        </div>
+        <div style="padding:20px; color:#333; font-size:15px; line-height:1.5;">
+          <p>Hi ${user.name ? user.name : "there"},</p>
+          <p>Let’s collaborate and make your influence shine ✨</p>
+          <p>🎬 Promote Songs | 🎥 Movies | 💼 Brands</p>
+          <p>Welcome to Rivaaz Films — Where Creativity Meets Promotion! 🌟</p>
+          <p>Welcome to Rivaaz Films, your one-stop destination for music distribution, movie promotions, and brand marketing. We specialize in helping artists, filmmakers, and businesses grow through influencer collaborations, digital campaigns, and creative storytelling.</p>
+          <p>✨ Whether it’s your new song, film release, or product launch, our team ensures your brand gets the spotlight it deserves.</p>
+          <p style="font-weight:600; font-size:16px;">🚀 Promote. Grow. Shine. — With Rivaaz Films!</p>
+          <p>📞 Get in touch today and start your promotional journey.</p>
+          <p>🌐 <a href="https://rivaazfilms.com" style="color:#4f46e5;">rivaazfilms.com</a></p>
+          <p>📧 <a href="mailto:info@rivaazfilms.com">info@rivaazfilms.com</a><br/>📱 +91 83848 64363 | ☎️ +91 81267 70620</p>
+        </div>
+        <div style="padding:12px 20px; text-align:center; background:#fafbfd; color:#99a0ad; font-size:12px;">
+          © ${new Date().getFullYear()} Rivaaz Films
+        </div>
+      </div>
+    </div>
+  `;
+
+  const mailOptions = {
+    from: process.env.SMTP_EMAIL,
+    to: user.email,
+    subject: "Welcome to Rivaaz Films Influencer Network!",
+    html,
+  };
+
+  const info = await transporter.sendMail(mailOptions);
+  console.log(info);
+
+  return info;
+}
 exports.userRegistrationPro = async (req, res, next) => {
   const { name, contactNum, email, fullAddress, pinCode, role, city, state } =
     req.body;
@@ -131,6 +175,7 @@ exports.userRegistrationPro = async (req, res, next) => {
 
     try {
       await createdUser.save();
+      sendWelcomeEmail({ email: createdUser.email, name: createdUser.name });
     } catch (err) {
       console.log(err);
 
@@ -222,6 +267,7 @@ exports.userRegistrationInf = async (req, res, next) => {
 
     try {
       await createdUser.save();
+      sendWelcomeEmail({ email: createdUser.email, name: createdUser.name });
     } catch (err) {
       console.log(err);
 
@@ -284,6 +330,18 @@ exports.getAllUsers = async (req, res) => {
   let users;
   try {
     users = await brandUser.find({});
+  } catch (error) {}
+  return res.status(200).json({
+    users: users.map((u) => {
+      return u.toObject({ getters: true });
+    }),
+    status: true,
+  });
+};
+exports.getAllInfUsers = async (req, res) => {
+  let users;
+  try {
+    users = await infUser.find({});
   } catch (error) {}
   return res.status(200).json({
     users: users.map((u) => {

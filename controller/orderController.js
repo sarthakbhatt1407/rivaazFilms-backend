@@ -32,7 +32,7 @@ function sendSongLiveEmailToUser(user, order) {
 
   if (!user.email) return;
   const mailOptions = {
-    from: process.env.SMPT_EMAIL,
+    from: process.env.SMTP_EMAIL,
     to: user.email,
     subject: `🎵 Your Song "${order.title}" is Now Live!`,
     html: `
@@ -69,11 +69,17 @@ function sendSongLiveEmailToUser(user, order) {
     `,
   };
   transporter.sendMail(mailOptions, (err, info) => {
+    console.log(info);
+
     if (err) {
       console.error(`Failed to send live song email to user ${user._id}:`, err);
     }
   });
 }
+// sendSongLiveEmailToUser(
+//   { email: "sarthakbhatt1407@gmail.com" },
+//   { title: "Test Song" }
+// );
 
 const months = [
   "January",
@@ -482,6 +488,64 @@ const getOrderByUser = async (req, res) => {
   });
 };
 
+function sendOrderRejectedEmailToUser(user, order) {
+  console.log(
+    "Sending order rejected email to user:",
+    user && user.email,
+    order && order._id
+  );
+
+  if (!user || !user.email) {
+    console.warn("No user email provided, skipping rejection email.");
+    return;
+  }
+
+  const mailOptions = {
+    from: process.env.SMTP_EMAIL,
+    to: user.email,
+    subject: `⛔ Your order "${order.title || ""}" has been rejected`,
+    html: `
+      <div style="font-family: Arial, sans-serif; background: #f9f9f9; padding: 28px;">
+        <div style="max-width:600px; margin:auto; background:#fff; border-radius:8px; padding:24px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+          <h2 style="color:#d9534f; text-align:center;">Order Rejected</h2>
+          <p style="color:#333; font-size:16px;">Hello <b>${
+            user.name || "User"
+          }</b>,</p>
+          <p style="color:#333; font-size:16px;">
+            We're sorry to inform you that your order <b>${
+              order.title || "Untitled"
+            }</b> has been rejected by our team.
+          </p>
+          <div style="background:#f8f9fa; border-radius:6px; padding:12px; margin:12px 0; color:#444;">
+            <b>Reason:</b> ${order.remark || "No reason provided."}<br/>
+            <b>Order ID:</b> ${order._id || ""}<br/>
+            <b>Status:</b> <span style="color:#d9534f;font-weight:bold;">Rejected</span>
+          </div>
+          <p style="color:#333; font-size:15px;">
+            If you believe this decision is incorrect or you need help to resubmit, please reply to this email or contact our support team.
+          </p>
+          <div style="text-align:center; margin-top:18px;">
+            <a href="mailto:info@rivaazfilms.com" style="background:#007bff;color:#fff;padding:10px 18px;border-radius:5px;text-decoration:none;">Contact Support</a>
+          </div>
+          <p style="color:#888;font-size:13px;text-align:center;margin-top:18px;">Best regards,<br/>Rivaaz Films Team</p>
+        </div>
+      </div>
+    `,
+  };
+
+  transporter.sendMail(mailOptions, (err, info) => {
+    if (err) {
+      console.error(`Failed to send rejection email to ${user.email}:`, err);
+      return;
+    }
+    console.log(`Rejection email sent to ${user.email}`, info && info.response);
+  });
+}
+// sendOrderRejectedEmailToUser(
+//   { email: "sarthakbhatt1407@gmail.com" },
+//   { title: "Test Order", remark: "Inappropriate content" }
+// );
+
 const editOrderById = async (req, res) => {
   const { id, action, userId } = req.query;
   console.log(action);
@@ -577,6 +641,7 @@ const editOrderById = async (req, res) => {
       }
       order.status = "rejected";
       order.remark = remark;
+      sendOrderRejectedEmailToUser(user, order);
     }
     if (action === "completed") {
       order.status = "completed";

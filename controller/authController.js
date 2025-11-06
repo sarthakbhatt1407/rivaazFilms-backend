@@ -16,6 +16,7 @@ const transporter = nodemailer.createTransport({
     pass: process.env.SMTP_PASS,
   },
 });
+const infUser = require("../models/infuser");
 
 const months = [
   "January",
@@ -171,6 +172,52 @@ exports.userExists = async (req, res) => {
 
   return res.status(404).json({ message: "User not exists.", exists: false });
 };
+
+async function sendWelcomeEmail(user) {
+  console.log("sending welcome email", user);
+
+  if (!user || !user.email) {
+    throw new Error("Invalid user data for welcome email.");
+  }
+
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial; background:#f7f9fc; padding:24px;">
+      <div style="max-width:600px; margin:0 auto; background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 2px 12px rgba(12,30,60,0.06);">
+        <div style="padding:20px; text-align:center; background:linear-gradient(90deg,#0b6cff 0%,#4f46e5 100%); color:#fff;">
+          <h1 style="margin:0; font-size:20px;">👋 Welcome to Rivaaz Films</h1>
+        </div>
+        <div style="padding:20px; color:#333; font-size:15px; line-height:1.5;">
+          <p>Hi ${user.name ? user.name : "there"},</p>
+          <p>Let’s collaborate and make your influence shine ✨</p>
+          <p>🎬 Promote Songs | 🎥 Movies | 💼 Brands</p>
+          <p>Welcome to Rivaaz Films — Where Creativity Meets Promotion! 🌟</p>
+          <p>Welcome to Rivaaz Films, your one-stop destination for music distribution, movie promotions, and brand marketing. We specialize in helping artists, filmmakers, and businesses grow through influencer collaborations, digital campaigns, and creative storytelling.</p>
+          <p>✨ Whether it’s your new song, film release, or product launch, our team ensures your brand gets the spotlight it deserves.</p>
+          <p style="font-weight:600; font-size:16px;">🚀 Promote. Grow. Shine. — With Rivaaz Films!</p>
+          <p>📞 Get in touch today and start your promotional journey.</p>
+          <p>🌐 <a href="https://rivaazfilms.com" style="color:#4f46e5;">rivaazfilms.com</a></p>
+          <p>📧 <a href="mailto:info@rivaazfilms.com">info@rivaazfilms.com</a><br/>📱 +91 83848 64363 | ☎️ +91 81267 70620</p>
+        </div>
+        <div style="padding:12px 20px; text-align:center; background:#fafbfd; color:#99a0ad; font-size:12px;">
+          © ${new Date().getFullYear()} Rivaaz Films
+        </div>
+      </div>
+    </div>
+  `;
+
+  const mailOptions = {
+    from: process.env.SMTP_EMAIL,
+    to: user.email,
+    subject: "Welcome to Rivaaz Films Influencer Network!",
+    html,
+  };
+
+  const info = await transporter.sendMail(mailOptions);
+  console.log(info);
+
+  return info;
+}
+// sendWelcomeEmail({ email: "sarthakbhatt1407@gmail.com", name: "Sarthak" });
 
 const userRegistration = async (req, res, next) => {
   const {
@@ -433,6 +480,7 @@ const userRegistration = async (req, res, next) => {
     }
     try {
       await createdUser.save();
+      sendWelcomeEmail({ email: createdUser.email, name: createdUser.name });
     } catch (err) {
       console.log(err);
       return res
@@ -1690,6 +1738,99 @@ exports.deleteWallletEntry = async (req, res) => {
   }
 };
 
+async function sendPaymentRequestEmailToAdmin(user, amount, remark, dashboard) {
+  console.log(
+    "sending email of payment request to admin...",
+    user.name,
+    amount,
+    remark
+  );
+
+  if (!user || !user.email) {
+    throw new Error("Invalid user data for email.");
+  }
+
+  // ...existing code...
+  const mailOptions = {
+    from: process.env.SMTP_EMAIL,
+    to: "rivaazfilms@gmail.com",
+    subject: `Payment Request from ${user.name}`,
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background:#f3f6f9; padding:24px;">
+        <div style="max-width:600px; margin:0 auto;">
+          <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#ffffff; border-radius:8px; overflow:hidden; box-shadow:0 2px 12px rgba(12,30,60,0.08);">
+            <tr>
+              <td style="padding:20px 24px; text-align:center; background: linear-gradient(90deg,#0b6cff 0%,#4f46e5 100%); color:#fff;">
+                <h1 style="margin:0; font-size:20px; font-weight:600;">Rivaaz Films (${dashboard})</h1>
+                <div style="font-size:13px; opacity:0.95;">Payment Request Notification</div>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:20px 24px;">
+                <p style="margin:0 0 12px; color:#333; font-size:15px;">
+                  Hello Admin,
+                </p>
+
+                <p style="margin:0 0 18px; color:#555; font-size:14px;">
+                  A payment request has been submitted by:
+                </p>
+
+                <table role="presentation" cellpadding="8" cellspacing="0" width="100%" style="border:1px solid #eef2f6; border-radius:6px;">
+                  <tr>
+                    <td style="width:38%; color:#777; font-size:13px;"><strong>User</strong></td>
+                    <td style="color:#222; font-size:14px;">${user.name} &lt;${
+      user.email
+    }&gt;</td>
+                  </tr>
+                
+                  <tr>
+                    <td style="color:#777; font-size:13px;"><strong>Amount</strong></td>
+                    <td style="color:#0b6cff; font-size:18px; font-weight:700;">₹${amount}</td>
+                  </tr>
+                  <tr>
+                    <td style="color:#777; font-size:13px;"><strong>Remark</strong></td>
+                    <td style="color:#222; font-size:14px;">${
+                      remark ? remark : "<i>No remark provided</i>"
+                    }</td>
+                  </tr>
+                </table>
+
+            
+
+                <p style="margin:18px 0 0; color:#888; font-size:12px;">
+                  This is an automated notification from Rivaaz Films. Please do not share sensitive credentials over email.
+                </p>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:12px 24px; background:#fafbfd; text-align:center; font-size:12px; color:#99a0ad;">
+                © ${new Date().getFullYear()} Rivaaz Films — <a href="https://rivaazfilms.com" style="color:#4f46e5; text-decoration:none;">rivaazfilms.com</a>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    `,
+  };
+  // ...existing code...
+
+  const info = await transporter.sendMail(mailOptions);
+  console.log(info);
+
+  return info;
+}
+// sendPaymentRequestEmailToAdmin(
+//   {
+//     email: "sarthakbhatt1407@gmail.com",
+//     name: "Sarthak Bhatt",
+//     _id: "1234567890",
+//   },
+//   100,
+//   "Test payment request"
+// );
+
 const sendPaymentRequestToAdmin = async (req, res) => {
   const { userId, amount, remark } = req.body;
 
@@ -1710,35 +1851,35 @@ const sendPaymentRequestToAdmin = async (req, res) => {
   }
 
   let info;
-  try {
-    info = await transporter.sendMail({
-      from: '"Rivaaz Films" <inforivaazfilms@gmail.com>',
-      // to: "sarthakbhatt1407@gmail.com",
-      to: `rivaazfilm@gmail.com`,
-      subject: "Payment Request from User",
-      html: `
-        <div style="font-family: Arial, sans-serif; background: #f9f9f9; padding: 24px;">
-          <div style="max-width: 500px; margin: auto; background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 24px;">
-            <h2 style="color: #222;">Payment Request</h2>
-            <p style="font-size: 16px; color: #444;">
-              <b>User:</b> ${user.name} (${user.email})
-            </p>
-            <p style="font-size: 16px; color: #444;">
-              <b>Amount:</b> ₹${amount}
-            </p>
-            <p style="font-size: 16px; color: #444;">
-              <b>Remark:</b> ${remark || "No remark provided."}
-            </p>
-            <p style="font-size: 14px; color: #888;">
-              <b>User ID:</b> ${userId}
-            </p>
-          </div>
-        </div>
-      `,
-    });
-  } catch (error) {
-    return res.json({ info, message: "Unable to send", sent: false });
+  sendPaymentRequestEmailToAdmin(user, amount, remark, "Music Distribution");
+
+  return res.json({
+    info,
+    message: "Payment request sent to admin.",
+    sent: true,
+  });
+};
+exports.sendPaymentRequestToAdminInf = async (req, res) => {
+  const { userId, amount, remark } = req.body;
+
+  if (!userId || !amount) {
+    return res
+      .status(400)
+      .json({ message: "User ID and amount are required." });
   }
+
+  let user;
+  try {
+    user = await infUser.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+  } catch (error) {
+    return res.status(500).json({ message: "Something went wrong." });
+  }
+
+  let info;
+  sendPaymentRequestEmailToAdmin(user, amount, remark, "Influencer Marketing");
 
   return res.json({
     info,

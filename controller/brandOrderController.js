@@ -718,7 +718,7 @@ exports.addwalletTransaction = async (req, res) => {
         id: uuidv4(),
         date: date,
         time: time,
-        description: "Bonus",
+        description: remark,
         amount: Number(amount),
       };
       let arr = [obj, ...user.bonus];
@@ -746,8 +746,9 @@ exports.deleteWallletEntry = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found." });
     }
+    console.log(action.toLowerCase().includes("bonus - "));
 
-    if (action.toLowerCase() == "bonus") {
+    if (action.toLowerCase().includes("bonus - ")) {
       const obj = user.bonus.find((entry) => entry.id == id);
       if (!obj) {
         return res.status(404).json({ message: "Entry not found." });
