@@ -124,7 +124,7 @@ async function sendWelcomeEmail(user) {
   const mailOptions = {
     from: process.env.SMTP_EMAIL,
     to: user.email,
-    subject: "Welcome to Rivaaz Films Influencer Network!",
+    subject: "Welcome to Rivaaz Films",
     html,
   };
 
