@@ -1753,7 +1753,8 @@ async function sendPaymentRequestEmailToAdmin(user, amount, remark, dashboard) {
   // ...existing code...
   const mailOptions = {
     from: process.env.SMTP_EMAIL,
-    to: "rivaazfilms@gmail.com",
+    // to: "rivaazfilms@gmail.com",
+    to: "inforivaazfilms@gmail.com",
     subject: `Payment Request from ${user.name}`,
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background:#f3f6f9; padding:24px;">
