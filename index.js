@@ -21,6 +21,7 @@ const copyrightRoute = require("./routes/copyright");
 const querytRoute = require("./routes/query");
 const notificationRoute = require("./routes/notification");
 const paymentRoute = require("./routes/payment");
+const weddingRoute = require("./routes/wedding");
 //  CORS
 const corsOptions = {
   origin: "*",
@@ -65,6 +66,7 @@ app.use("/copyright", copyrightRoute);
 app.use("/query", querytRoute);
 app.use("/notification", notificationRoute);
 app.use("/payment", paymentRoute);
+app.use("/wedding", weddingRoute);
 
 app.use("/", (req, res) => {
   res.send("<h1>App is succesfully live on server.</h1>");
