@@ -49,5 +49,16 @@ router.post(
   ]),
   weddingController.editRental
 );
+router.post("/add-rental-order", weddingController.createRentalOrder);
+router.get("/get-all-rental-orders", weddingController.getAllRentalOrders);
+router.post(
+  "/update-rental-order/:id",
+  weddingController.updateRentalOrderStatus
+);
+
+router.post(
+  "/toggle-rental-availability/:id",
+  weddingController.toggleRentalAvailability
+);
 
 module.exports = router;
