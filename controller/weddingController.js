@@ -1,9 +1,11 @@
 const Rental = require("../models/rental");
 const RentalOrder = require("../models/rentalOrder");
 const Gallery = require("../models/gallery");
+const fs = require("fs");
+const path = require("path");
 
 exports.addGalleryItem = async (req, res) => {
-  const { type } = req.body;
+  const { type, category } = req.body;
   if (!req.files) {
     return res.status(400).json({ message: "Please upload files!" });
   }
@@ -18,7 +20,7 @@ exports.addGalleryItem = async (req, res) => {
   }
 
   try {
-    const newItem = new Gallery({ type, link: file.path });
+    const newItem = new Gallery({ type, link: file.path, category });
     await newItem.save();
     res
       .status(201)
@@ -41,7 +43,25 @@ exports.getGalleryItems = async (req, res) => {
 exports.deleteGalleryItem = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // Find the gallery item first to get the file path
+    const galleryItem = await Gallery.findById(id);
+
+    if (!galleryItem) {
+      return res.status(404).json({ message: "Gallery item not found" });
+    }
+
+    // Delete the physical file
+    if (galleryItem.link) {
+      const filePath = path.join(__dirname, "..", galleryItem.link);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+
+    // Delete the database entry
     await Gallery.findByIdAndDelete(id);
+
     res.status(200).json({ message: "Gallery item deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Error deleting gallery item", error });

@@ -80,4 +80,7 @@ router.get(
 );
 router.get("/admin/dashboard-stats", authController.getAdminDashboardStats);
 
+router.post("/send-contact-email", authController.sendContactEmail);
+router.post("/send-custom-plan-email", authController.sendCustomPlanRequest);
+
 module.exports = router;

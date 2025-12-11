@@ -2014,6 +2014,103 @@ const downloadLabelReport = async (req, res) => {
     fs.unlink(tempFilePath, () => {});
   });
 };
+
+exports.sendContactEmail = async (req, res) => {
+  const { firstName, lastName, phone, message } = req.body;
+
+  // Compose the email content
+  const mailOptions = {
+    from: '"Rivaaz Films" <info@rivaazfilms.com>',
+    to: "rivaazoffice@gmail.com",
+    subject: `Wedding Inquiry from ${firstName} ${lastName}`, // Subject line
+    html: `
+  <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #f7f9fc; padding:32px;">
+    <div style="max-width:520px; margin:0 auto; background:#fff; border-radius:12px; box-shadow:0 2px 12px rgba(12,30,60,0.08); overflow:hidden;">
+      <div style="padding:24px; background:linear-gradient(90deg,#da1701 0%,#fbb034 100%); color:#fff; text-align:center;">
+        <h2 style="margin:0; font-size:22px; font-weight:700;">📩 New Contact Form Submission</h2>
+      </div>
+      <div style="padding:24px 24px 16px 24px; color:#333;">
+        <p style="font-size:16px; margin-bottom:18px;">
+          <strong>Name:</strong> ${firstName} ${lastName}<br/>
+          <strong>Phone:</strong> <a href="tel:${phone}" style="color:#da1701; text-decoration:none;">${phone}</a><br/>
+    
+        </p>
+        <div style="background:#f7f7fa; border-radius:8px; padding:18px; margin-bottom:12px; border-left:4px solid #da1701;">
+          <strong style="color:#da1701;">Message:</strong><br/>
+          <span style="font-size:15px; color:#444;">${message}</span>
+        </div>
+      </div>
+      <div style="padding:12px 24px; background:#fafbfd; text-align:center; font-size:13px; color:#99a0ad;">
+        © ${new Date().getFullYear()} Rivaaz Films — <a href="https://rivaazfilms.com" style="color:#da1701; text-decoration:none;">rivaazfilms.com</a>
+      </div>
+    </div>
+  </div>
+`,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return res.json({
+      message: "Your message has been sent successfully!",
+      sent: true,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Unable to send message", sent: false, error });
+  }
+};
+
+exports.sendCustomPlanRequest = async (req, res) => {
+  const { name, phone, bookingDate, requirements, plan } = req.body;
+
+  const mailOptions = {
+    from: '"Rivaaz Films" <info@rivaazfilms.com>',
+    to: "rivaazoffice@gmail.com",
+    // to: "sarthakbhatt1407@gmail.com",
+    subject: `New Custom Wedding Package Request - ${plan}`,
+    html: `
+      <div style="font-family: 'Segoe UI', Arial, sans-serif; background: #f7f9fc; padding:32px;">
+        <div style="max-width:520px; margin:0 auto; background:#fff; border-radius:12px; box-shadow:0 2px 12px rgba(12,30,60,0.08); overflow:hidden;">
+          <div style="padding:24px; background:linear-gradient(90deg,#da1701 0%,#fbb034 100%); color:#fff; text-align:center;">
+            <h2 style="margin:0; font-size:22px; font-weight:700;">🎉 New Custom Plan Request</h2>
+          </div>
+          <div style="padding:24px 24px 16px 24px; color:#333;">
+            <p style="font-size:16px; margin-bottom:18px;">
+              <strong>Name:</strong> ${name}<br/>
+              <strong>Phone:</strong> <a href="tel:${phone}" style="color:#da1701; text-decoration:none;">${phone}</a><br/>
+              <strong>Preferred Booking Date:</strong> ${
+                bookingDate || "Not specified"
+              }
+            </p>
+            <div style="background:#f7f7fa; border-radius:8px; padding:18px; margin-bottom:12px; border-left:4px solid #da1701;">
+              <strong style="color:#da1701;">Additional Requirements:</strong><br/>
+              <span style="font-size:15px; color:#444;">${
+                requirements || "None provided"
+              }</span>
+            </div>
+          </div>
+          <div style="padding:12px 24px; background:#fafbfd; text-align:center; font-size:13px; color:#99a0ad;">
+            © ${new Date().getFullYear()} Rivaaz Films — <a href="https://rivaazfilms.com" style="color:#da1701; text-decoration:none;">rivaazfilms.com</a>
+          </div>
+        </div>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    return res.json({
+      message: "Your custom plan request has been sent!",
+      sent: true,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Unable to send request", sent: false, error });
+  }
+};
+
 exports.downloadLabelReport = downloadLabelReport;
 
 exports.sendPaymentRequestToAdmin = sendPaymentRequestToAdmin;
