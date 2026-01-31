@@ -22,6 +22,7 @@ const querytRoute = require("./routes/query");
 const notificationRoute = require("./routes/notification");
 const paymentRoute = require("./routes/payment");
 const weddingRoute = require("./routes/wedding");
+const rivaazRental = require("./routes/rivaazRental");
 //  CORS
 const corsOptions = {
   origin: "*",
@@ -53,7 +54,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: { maxAge: 60000 * 30 },
-  })
+  }),
 );
 app.use("/user", authenticationRoute);
 app.use("/brand", brandroute);
@@ -67,6 +68,7 @@ app.use("/query", querytRoute);
 app.use("/notification", notificationRoute);
 app.use("/payment", paymentRoute);
 app.use("/wedding", weddingRoute);
+app.use("/rivaaz-rental", rivaazRental);
 
 app.use("/", (req, res) => {
   res.send("<h1>App is succesfully live on server.</h1>");
