@@ -104,4 +104,7 @@ router.put(
   rivaazRentalController.editPortfolioItem,
 );
 
+// Login
+router.post("/admin-login", rivaazRentalController.adminLogin);
+
 module.exports = router;
