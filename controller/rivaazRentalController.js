@@ -1,6 +1,9 @@
 const RentalCategory = require("../models/rentalCategory");
 const RentalItems = require("../models/rivaazRentalItems");
-
+const rivaazRentalOrders = require("../models/rivaazRentalOrders");
+const rentalPortfolio = require("../models/rentalPortfolio");
+const fs = require("fs");
+const path = require("path");
 // Category Controllers
 exports.addRentalCategory = async (req, res) => {
   const { name } = req.body;
@@ -43,6 +46,7 @@ exports.deleteRentalCategory = async (req, res) => {
   try {
     const categoryId = req.params.id;
     await RentalCategory.findByIdAndDelete(categoryId);
+
     res.status(200).json({ message: "Rental category deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
@@ -192,6 +196,155 @@ exports.getrentalItemById = async (req, res) => {
 
     res.status(200).json({
       item: item.toObject({ getters: true }),
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Rental Orders Controllers
+
+exports.createRentalOrder = async (req, res) => {
+  try {
+    const { name, email, phone, fromDate, toDate, notes, items } = req.body;
+    const newOrder = new rivaazRentalOrders({
+      name,
+      email,
+      phone,
+      fromDate,
+      toDate,
+      notes,
+      items,
+      status: "Pending",
+    });
+    await newOrder.save();
+    res.status(201).json({
+      message: "Rental order created successfully",
+      order: newOrder,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.getAllRentalOrders = async (req, res) => {
+  try {
+    const orders = await rivaazRentalOrders.find();
+    res.status(200).json({
+      orders: orders.map((order) => {
+        return order.toObject({ getters: true });
+      }),
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.updateRentalOrderStatus = async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    const { status } = req.body;
+    const updatedOrder = await rivaazRentalOrders.findByIdAndUpdate(
+      orderId,
+      { status },
+      { new: true },
+    );
+    res.status(200).json({
+      message: "Rental order status updated successfully",
+      order: updatedOrder,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.deleteRentalOrder = async (req, res) => {
+  try {
+    const orderId = req.params.id;
+    await rivaazRentalOrders.findByIdAndDelete(orderId);
+    res.status(200).json({ message: "Rental order deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Rental Portfolio Controllers
+
+exports.creataPortfolioItem = async (req, res) => {
+  try {
+    const { title, url } = req.body;
+    if (!req.files || !req.files.image) {
+      return res.status(400).json({ message: "Image file is required" });
+    }
+    const imageUrl = req.files.image[0].path;
+
+    const newPortfolioItem = new rentalPortfolio({
+      title,
+      url,
+      image: imageUrl,
+    });
+    await newPortfolioItem.save();
+    res.status(201).json({
+      message: "Portfolio item created successfully",
+      item: newPortfolioItem,
+    });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+exports.getAllPortfolioItems = async (req, res) => {
+  try {
+    const items = await rentalPortfolio.find();
+    res.status(200).json({
+      items: items.map((item) => {
+        return item.toObject({ getters: true });
+      }),
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+exports.deletePortfolioItem = async (req, res) => {
+  try {
+    const itemId = req.params.id;
+    const item = await rentalPortfolio.findById(itemId);
+    if (item && item.image) {
+      const imagePath = item.image;
+      fs.unlink(imagePath, (err) => {
+        if (err) {
+          console.error("Failed to delete image file:", err);
+        }
+      });
+    }
+    await rentalPortfolio.findByIdAndDelete(itemId);
+
+    res.status(200).json({ message: "Portfolio item deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.editPortfolioItem = async (req, res) => {
+  try {
+    const itemId = req.params.id;
+    const { title, url } = req.body;
+    const updatedData = {
+      title,
+      url,
+    };
+    if (req.files && req.files.image) {
+      updatedData.image = req.files.image[0].path;
+    }
+    const updatedItem = await rentalPortfolio.findByIdAndUpdate(
+      itemId,
+      updatedData,
+      { new: true },
+    );
+    res.status(200).json({
+      message: "Portfolio item updated successfully",
+      item: updatedItem,
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });

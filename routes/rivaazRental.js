@@ -58,4 +58,50 @@ router.post(
 
 router.get("/rental-item/:id", rivaazRentalController.getrentalItemById);
 
+// Rental Orders Routes
+router.post("/create-rental-order", rivaazRentalController.createRentalOrder);
+router.get("/all-rental-orders", rivaazRentalController.getAllRentalOrders);
+router.put(
+  "/update-rental-order-status/:id",
+  rivaazRentalController.updateRentalOrderStatus,
+);
+
+router.delete(
+  "/delete-rental-order/:id",
+  rivaazRentalController.deleteRentalOrder,
+);
+
+// Rental Portfolio Routes
+router.post(
+  "/add-rental-portfolio",
+  fileUpload.fields([
+    {
+      name: "image", // This should match the field name for the audio file
+      maxCount: 1, // You can specify the max number of files to upload
+    },
+  ]),
+  rivaazRentalController.creataPortfolioItem,
+);
+
+router.get(
+  "/all-rental-portfolio",
+  rivaazRentalController.getAllPortfolioItems,
+);
+
+router.delete(
+  "/delete-rental-portfolio/:id",
+  rivaazRentalController.deletePortfolioItem,
+);
+
+router.put(
+  "/update-rental-portfolio/:id",
+  fileUpload.fields([
+    {
+      name: "image", // This should match the field name for the audio file
+      maxCount: 1, // You can specify the max number of files to upload
+    },
+  ]),
+  rivaazRentalController.editPortfolioItem,
+);
+
 module.exports = router;
